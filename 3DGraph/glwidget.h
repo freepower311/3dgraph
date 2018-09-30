@@ -23,6 +23,7 @@ protected:
     GLuint m_colorAttr;
     QVector<GLfloat> m_vertexArray;
     QVector<GLfloat> m_colorArray;
+
 private:
     QString m_vshaderPath;
     QString m_fshaderPath;

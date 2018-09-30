@@ -56,14 +56,15 @@ void GLWidget::initializeGL()
 
     glVertexAttribPointer(m_positionAttr, 3, GL_FLOAT, false, 0, m_vertexArray.data());
     glVertexAttribPointer(m_colorAttr, 3, GL_FLOAT, false, 0, m_colorArray.data());
+
 }
 
-void GLWidget::paintGL(){
+void GLWidget::paintGL()
+{
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //standard way
     glUseProgram(m_shaderProgram);
-
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
@@ -73,6 +74,8 @@ void GLWidget::paintGL(){
 
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);
+    glUseProgram(0);
+
 
 
     //QOpenGLShaderProgram way
@@ -89,7 +92,8 @@ void GLWidget::paintGL(){
     */
 }
 
-void GLWidget::initShaders() {
+void GLWidget::initShaders()
+{
     //compile shaders
     m_qShaderProgram = new QOpenGLShaderProgram(this);
     m_qShaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, m_vshaderPath);
@@ -103,7 +107,8 @@ void GLWidget::initShaders() {
     m_colorAttr = m_qShaderProgram->attributeLocation("colorAttr");
 }
 
-std::string readFromFile(QString &path){
+std::string readFromFile(QString &path)
+{
     QFile file(path);
     QString textFromFile;
     file.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -117,7 +122,8 @@ std::string readFromFile(QString &path){
     return textFromFile.toStdString();
 }
 
-GLuint GLWidget::loadShaders(){
+GLuint GLWidget::loadShaders()
+{
     //создаем шейдеры
     GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
