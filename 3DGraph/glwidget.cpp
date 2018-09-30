@@ -30,15 +30,16 @@ void GLWidget::initializeGL()
         1.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 0.0f
+        0.0f, 1.0f, 0.0f
     };
-    for(int i = 0; i<20; i++)
+    const unsigned int circlePoints = 20;
+    for(int i = 0; i < circlePoints; i++)
     {
-        m_vertexArray.append(-0.5 + 0.2*cos(i*M_PI/10.0));
-        m_vertexArray.append(0.5 + 0.2*sin(i*M_PI/10.0));
+        m_vertexArray.append(-0.5 + 0.2*cos(i*2*M_PI/circlePoints));
+        m_vertexArray.append(0.5 + 0.2*sin(i*2*M_PI/circlePoints));
         m_vertexArray.append(0.0);
     }
-    for(int i = 0; i<20; i++)
+    for(int i = 0; i < circlePoints; i++)
     {
         m_colorArray.append(1.0);   //R
         m_colorArray.append(1.0);   //G
