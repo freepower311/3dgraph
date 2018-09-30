@@ -2,7 +2,7 @@
 #define GLWIDGET_H
 
 #include <QOpenGLFunctions>
-#include <QOpenGLWidget> //or #include <QtOpenGL/QGLWidget>
+#include <QOpenGLWidget>
 #include <QOpenGLShaderProgram>
 
 class GLWidget : public QOpenGLWidget, public QOpenGLFunctions
@@ -14,10 +14,15 @@ public:
 
 protected:
     void initShaders();
+    GLuint loadShaders();
 
-    QOpenGLShaderProgram *m_program;
-    GLuint pointerToTime;
-    int timeCounter;
+    QOpenGLShaderProgram *m_qShaderProgram;
+    GLuint m_shaderProgram;
+    GLuint m_positionAttr;
+    GLuint m_colorAttr;
+private:
+    QString m_vshaderPath;
+    QString m_fshaderPath;
 };
 
 #endif // GLWIDGET_H

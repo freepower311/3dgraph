@@ -1,10 +1,11 @@
-attribute highp vec4 posAtr;
-uniform highp int time;
+#version 330 core
+
+varying lowp vec3 col;
+layout(location = 0) in vec4 positionAttr;
+layout(location = 1) in vec4 colorAttr;
 
 void main()
 {
-    gl_Position = vec4(posAtr.x + cos(posAtr.y*10.0 + time*0.05)*0.1,
-                       posAtr.y + sin(posAtr.x*5.0 + time*0.05)*0.1,
-                       posAtr.z,
-                       1);
+   col = colorAttr.xyz;
+   gl_Position = positionAttr;
 }
