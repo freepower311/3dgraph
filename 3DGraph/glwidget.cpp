@@ -29,17 +29,14 @@ void GLWidget::initializeGL()
 
     //standard way
     m_shaderProgram = loadShaders();
-    glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, vertices);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, colors);
-    glEnableVertexAttribArray(1);
+    m_positionAttr = 0;
+    m_colorAttr = 1;
 
     //QOpenGLShaderProgram way
-    /*
-    initShaders();
-    glVertexAttribPointer(m_positionAttr, 3, GL_FLOAT, GL_FALSE, 0, vertices);
-    glVertexAttribPointer(m_colorAttr, 3, GL_FLOAT, GL_FALSE, 0, colors);
-    */
+    //initShaders();
+
+    glVertexAttribPointer(m_positionAttr, 3, GL_FLOAT, false, 0, vertices);
+    glVertexAttribPointer(m_colorAttr, 3, GL_FLOAT, false, 0, colors);
 }
 
 void GLWidget::paintGL(){
@@ -47,7 +44,14 @@ void GLWidget::paintGL(){
 
     //standard way
     glUseProgram(m_shaderProgram);
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
     glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
 
 
     //QOpenGLShaderProgram way
@@ -86,7 +90,7 @@ std::string readFromFile(QString &path){
     {
         while(!file.atEnd())
         {
-            textFromFile += QString::fromStdString(file.readLine().toStdString()); //Что за костыль?
+            textFromFile += file.readLine().data();
         }
     }
     return textFromFile.toStdString();
@@ -94,57 +98,57 @@ std::string readFromFile(QString &path){
 
 GLuint GLWidget::loadShaders(){
     // создаем шейдеры
-    GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-    GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+    GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+    GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
     // читаем вершинный шейдер из файла
-    std::string VertexShaderCode = readFromFile(m_vshaderPath);
+    std::string vertexShaderCode = readFromFile(m_vshaderPath);
     // читаем фрагментный шейдер из файла
-    std::string FragmentShaderCode = readFromFile(m_fshaderPath);
+    std::string fragmentShaderCode = readFromFile(m_fshaderPath);
 
-    GLint Result = GL_FALSE;
-    int InfoLogLength;
+    GLint result = GL_FALSE;
+    int infoLogLength;
 
     // Компилируем вершинный шейдер
     qDebug() << "Compiling shader : " <<  m_vshaderPath;
-    char const * VertexSourcePointer = VertexShaderCode.c_str();
-    glShaderSource(VertexShaderID, 1, &VertexSourcePointer , NULL);
-    glCompileShader(VertexShaderID);
+    char const * vertexSourcePointer = vertexShaderCode.c_str();
+    glShaderSource(vertexShaderID, 1, &vertexSourcePointer , NULL);
+    glCompileShader(vertexShaderID);
 
     // Устанавливаем параметры
-    glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
-    glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    std::vector<char> VertexShaderErrorMessage(InfoLogLength);
-    glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
-    fprintf(stdout, "%s\n", &VertexShaderErrorMessage[0]);
+    glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &result);
+    glGetShaderiv(vertexShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
+    std::vector<char> vertexShaderErrorMessage(infoLogLength);
+    glGetShaderInfoLog(vertexShaderID, infoLogLength, NULL, &vertexShaderErrorMessage[0]);
+    fprintf(stdout, "%s\n", &vertexShaderErrorMessage[0]);
 
     // Компилируем фрагментный шейдер
     qDebug() << "Compiling shader : " <<  m_fshaderPath;
-    char const * FragmentSourcePointer = FragmentShaderCode.c_str();
-    glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer , NULL);
-    glCompileShader(FragmentShaderID);
+    char const * fragmentSourcePointer = fragmentShaderCode.c_str();
+    glShaderSource(fragmentShaderID, 1, &fragmentSourcePointer , NULL);
+    glCompileShader(fragmentShaderID);
 
     // Устанавливаем параметры
-    glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
-    glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    std::vector<char> FragmentShaderErrorMessage(InfoLogLength);
-    glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
-    fprintf(stdout, "%s\n", &FragmentShaderErrorMessage[0]);
+    glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &result);
+    glGetShaderiv(fragmentShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
+    std::vector<char> fragmentShaderErrorMessage(infoLogLength);
+    glGetShaderInfoLog(fragmentShaderID, infoLogLength, NULL, &fragmentShaderErrorMessage[0]);
+    fprintf(stdout, "%s\n", &fragmentShaderErrorMessage[0]);
 
     fprintf(stdout, "Linking program\n");
-    GLuint ProgramID = glCreateProgram();
-    glAttachShader(ProgramID, VertexShaderID);
-    glAttachShader(ProgramID, FragmentShaderID);
-    glLinkProgram(ProgramID);
+    GLuint programID = glCreateProgram();
+    glAttachShader(programID, vertexShaderID);
+    glAttachShader(programID, fragmentShaderID);
+    glLinkProgram(programID);
 
     // Устанавливаем параметры
-    glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-    glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    std::vector<char> ProgramErrorMessage( std::max(InfoLogLength, int(1)) );
-    glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-    fprintf(stdout, "%s\n", &ProgramErrorMessage[0]);
+    glGetProgramiv(programID, GL_LINK_STATUS, &result);
+    glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
+    std::vector<char> programErrorMessage( std::max(infoLogLength, int(1)) );
+    glGetProgramInfoLog(programID, infoLogLength, NULL, &programErrorMessage[0]);
+    fprintf(stdout, "%s\n", &programErrorMessage[0]);
 
-    glDeleteShader(VertexShaderID);
-    glDeleteShader(FragmentShaderID);
-    return ProgramID;
+    glDeleteShader(vertexShaderID);
+    glDeleteShader(fragmentShaderID);
+    return programID;
 }
