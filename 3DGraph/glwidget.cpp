@@ -14,8 +14,7 @@ GLWidget::GLWidget(QWidget* parent) : QOpenGLWidget(parent),
 void GLWidget::initializeGL()
 {
     initializeOpenGLFunctions();
-    //Массив из 3 векторов которые будут представлять 3 вершины
-    static const GLfloat vertices[] = {
+    m_vertexArray = {
         -0.9f, -0.9f, 0.0f,
         -0.5f, 0.0f, 0.0f,
         -0.1f, -0.9f, 0.0f,
@@ -24,8 +23,7 @@ void GLWidget::initializeGL()
         0.5f, 0.4f, 0.0f,
         0.5f, 0.1f, 0.0f
     };
-    //Массив из 3 векторов которые будут представлять цвета вершин
-    static const GLfloat colors[] = {
+    m_colorArray = {
         1.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 1.0f,
@@ -34,6 +32,18 @@ void GLWidget::initializeGL()
         0.0f, 0.0f, 1.0f,
         1.0f, 0.0f, 0.0f
     };
+    for(int i = 0; i<20; i++)
+    {
+        m_vertexArray.append(-0.5 + 0.2*cos(i*M_PI/10.0));
+        m_vertexArray.append(0.5 + 0.2*sin(i*M_PI/10.0));
+        m_vertexArray.append(0.0);
+    }
+    for(int i = 0; i<20; i++)
+    {
+        m_colorArray.append(1.0);   //R
+        m_colorArray.append(1.0);   //G
+        m_colorArray.append(0.0);   //B
+    }
 
     //standard way
     m_shaderProgram = loadShaders();
@@ -43,8 +53,8 @@ void GLWidget::initializeGL()
     //QOpenGLShaderProgram way
     //initShaders();
 
-    glVertexAttribPointer(m_positionAttr, 3, GL_FLOAT, false, 0, vertices);
-    glVertexAttribPointer(m_colorAttr, 3, GL_FLOAT, false, 0, colors);
+    glVertexAttribPointer(m_positionAttr, 3, GL_FLOAT, false, 0, m_vertexArray.data());
+    glVertexAttribPointer(m_colorAttr, 3, GL_FLOAT, false, 0, m_colorArray.data());
 }
 
 void GLWidget::paintGL(){
@@ -58,6 +68,7 @@ void GLWidget::paintGL(){
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glDrawArrays(GL_QUADS, 3, 4);
+    glDrawArrays(GL_POLYGON, 7, 20);
 
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);

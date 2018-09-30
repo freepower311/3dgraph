@@ -4,6 +4,7 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLWidget>
 #include <QOpenGLShaderProgram>
+#include <QVector>
 
 class GLWidget : public QOpenGLWidget, public QOpenGLFunctions
 {
@@ -20,6 +21,8 @@ protected:
     GLuint m_shaderProgram;
     GLuint m_positionAttr;
     GLuint m_colorAttr;
+    QVector<GLfloat> m_vertexArray;
+    QVector<GLfloat> m_colorArray;
 private:
     QString m_vshaderPath;
     QString m_fshaderPath;
