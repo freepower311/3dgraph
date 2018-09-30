@@ -16,15 +16,23 @@ void GLWidget::initializeGL()
     initializeOpenGLFunctions();
     //Массив из 3 векторов которые будут представлять 3 вершины
     static const GLfloat vertices[] = {
-       -1.0f, -1.0f, 0.0f,
-       1.0f, -1.0f, 0.0f,
-       0.0f, 1.0f, 0.0f,
+        -0.9f, -0.9f, 0.0f,
+        -0.5f, 0.0f, 0.0f,
+        -0.1f, -0.9f, 0.0f,
+        0.1f, 0.1f, 0.0f,
+        0.1f, 0.4f, 0.0f,
+        0.5f, 0.4f, 0.0f,
+        0.5f, 0.1f, 0.0f
     };
     //Массив из 3 векторов которые будут представлять цвета вершин
     static const GLfloat colors[] = {
-       1.0f, 0.0f, 0.0f,
-       0.0f, 1.0f, 0.0f,
-       0.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 0.0f
     };
 
     //standard way
@@ -49,6 +57,7 @@ void GLWidget::paintGL(){
     glEnableVertexAttribArray(1);
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_QUADS, 3, 4);
 
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);
@@ -97,19 +106,19 @@ std::string readFromFile(QString &path){
 }
 
 GLuint GLWidget::loadShaders(){
-    // создаем шейдеры
+    //создаем шейдеры
     GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
-    // читаем вершинный шейдер из файла
+    //читаем вершинный шейдер из файла
     std::string vertexShaderCode = readFromFile(m_vshaderPath);
-    // читаем фрагментный шейдер из файла
+    //читаем фрагментный шейдер из файла
     std::string fragmentShaderCode = readFromFile(m_fshaderPath);
 
     GLint result = GL_FALSE;
     int infoLogLength;
 
-    // Компилируем вершинный шейдер
+    //Компилируем вершинный шейдер
     qDebug() << "Compiling shader : " <<  m_vshaderPath;
     char const * vertexSourcePointer = vertexShaderCode.c_str();
     glShaderSource(vertexShaderID, 1, &vertexSourcePointer , NULL);
@@ -122,13 +131,13 @@ GLuint GLWidget::loadShaders(){
     glGetShaderInfoLog(vertexShaderID, infoLogLength, NULL, &vertexShaderErrorMessage[0]);
     fprintf(stdout, "%s\n", &vertexShaderErrorMessage[0]);
 
-    // Компилируем фрагментный шейдер
+    //Компилируем фрагментный шейдер
     qDebug() << "Compiling shader : " <<  m_fshaderPath;
     char const * fragmentSourcePointer = fragmentShaderCode.c_str();
     glShaderSource(fragmentShaderID, 1, &fragmentSourcePointer , NULL);
     glCompileShader(fragmentShaderID);
 
-    // Устанавливаем параметры
+    //Устанавливаем параметры
     glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &result);
     glGetShaderiv(fragmentShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
     std::vector<char> fragmentShaderErrorMessage(infoLogLength);
@@ -141,10 +150,10 @@ GLuint GLWidget::loadShaders(){
     glAttachShader(programID, fragmentShaderID);
     glLinkProgram(programID);
 
-    // Устанавливаем параметры
+    //Устанавливаем параметры
     glGetProgramiv(programID, GL_LINK_STATUS, &result);
     glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
-    std::vector<char> programErrorMessage( std::max(infoLogLength, int(1)) );
+    std::vector<char> programErrorMessage( std::max(infoLogLength, int(1)));
     glGetProgramInfoLog(programID, infoLogLength, NULL, &programErrorMessage[0]);
     fprintf(stdout, "%s\n", &programErrorMessage[0]);
 
