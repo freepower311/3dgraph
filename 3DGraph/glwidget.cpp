@@ -1,95 +1,11 @@
 #include "glwidget.h"
 #include <QFile>
-#include <iostream>
 #include <fstream>
 #include <string>
 #include <algorithm>
 
-GLWidget::GLWidget(QWidget* parent) : QOpenGLWidget(parent),
-    m_vshaderPath(":/vshader.glsl"),
-    m_fshaderPath(":/fshader.glsl")
+GLWidget::GLWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
-}
-
-void GLWidget::initializeGL()
-{
-    initializeOpenGLFunctions();
-    m_vertexArray = {
-        -0.9f, -0.9f, 0.0f,
-        -0.5f, 0.0f, 0.0f,
-        -0.1f, -0.9f, 0.0f,
-        0.1f, 0.1f, 0.0f,
-        0.1f, 0.4f, 0.0f,
-        0.5f, 0.4f, 0.0f,
-        0.5f, 0.1f, 0.0f
-    };
-    m_colorArray = {
-        1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 1.0f,
-        0.0f, 1.0f, 0.0f
-    };
-    const unsigned int circlePoints = 20;
-    for(int i = 0; i < circlePoints; i++)
-    {
-        m_vertexArray.append(-0.5 + 0.2*cos(i*2*M_PI/circlePoints));
-        m_vertexArray.append(0.5 + 0.2*sin(i*2*M_PI/circlePoints));
-        m_vertexArray.append(0.0);
-    }
-    for(int i = 0; i < circlePoints; i++)
-    {
-        m_colorArray.append(1.0);   //R
-        m_colorArray.append(1.0);   //G
-        m_colorArray.append(0.0);   //B
-    }
-
-    //standard way
-    m_shaderProgram = loadShaders();
-    m_positionAttr = 0;
-    m_colorAttr = 1;
-
-    //QOpenGLShaderProgram way
-    //initShaders();
-
-    glVertexAttribPointer(m_positionAttr, 3, GL_FLOAT, false, 0, m_vertexArray.data());
-    glVertexAttribPointer(m_colorAttr, 3, GL_FLOAT, false, 0, m_colorArray.data());
-
-}
-
-void GLWidget::paintGL()
-{
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    //standard way
-    glUseProgram(m_shaderProgram);
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glDrawArrays(GL_QUADS, 3, 4);
-    glDrawArrays(GL_POLYGON, 7, 20);
-
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(0);
-    glUseProgram(0);
-
-
-
-    //QOpenGLShaderProgram way
-    /*
-    m_qShaderProgram->bind();
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(0);
-    m_qShaderProgram->release();
-    */
 }
 
 void GLWidget::initShaders()
@@ -122,7 +38,7 @@ std::string readFromFile(QString &path)
     return textFromFile.toStdString();
 }
 
-GLuint GLWidget::loadShaders()
+void GLWidget::loadShaders()
 {
     //создаем шейдеры
     GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -163,19 +79,20 @@ GLuint GLWidget::loadShaders()
     fprintf(stdout, "%s\n", &fragmentShaderErrorMessage[0]);
 
     fprintf(stdout, "Linking program\n");
-    GLuint programID = glCreateProgram();
-    glAttachShader(programID, vertexShaderID);
-    glAttachShader(programID, fragmentShaderID);
-    glLinkProgram(programID);
+    m_shaderProgram = glCreateProgram();
+    glAttachShader(m_shaderProgram, vertexShaderID);
+    glAttachShader(m_shaderProgram, fragmentShaderID);
+    glLinkProgram(m_shaderProgram);
 
     //Устанавливаем параметры
-    glGetProgramiv(programID, GL_LINK_STATUS, &result);
-    glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
+    glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &result);
+    glGetProgramiv(m_shaderProgram, GL_INFO_LOG_LENGTH, &infoLogLength);
     std::vector<char> programErrorMessage( std::max(infoLogLength, int(1)));
-    glGetProgramInfoLog(programID, infoLogLength, NULL, &programErrorMessage[0]);
+    glGetProgramInfoLog(m_shaderProgram, infoLogLength, NULL, &programErrorMessage[0]);
     fprintf(stdout, "%s\n", &programErrorMessage[0]);
 
     glDeleteShader(vertexShaderID);
     glDeleteShader(fragmentShaderID);
-    return programID;
+    m_positionAttr = glGetAttribLocation(m_shaderProgram, "positionAttr");
+    m_colorAttr = glGetAttribLocation(m_shaderProgram, "colorAttr");
 }

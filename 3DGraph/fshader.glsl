@@ -1,6 +1,6 @@
 #version 330 core
 
-varying lowp vec3 col;
+in lowp vec3 col;
 
 void main()
 {

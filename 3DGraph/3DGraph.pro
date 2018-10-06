@@ -27,11 +27,13 @@ LIBS += -lopengl32
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    glwidget.cpp
+    glwidget.cpp \
+    glwidgetlab1.cpp
 
 HEADERS += \
         mainwindow.h \
-    glwidget.h
+    glwidget.h \
+    glwidgetlab1.h
 
 FORMS += \
         mainwindow.ui
