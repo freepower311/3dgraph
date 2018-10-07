@@ -10,6 +10,7 @@ GLWidgetLab1::GLWidgetLab1(QWidget* parent):GLWidget(parent),
 void GLWidgetLab1::initializeGL()
 {
     initializeOpenGLFunctions();
+    //Генерация вершин и их цвета
     m_vertexArray = {
         -0.9f, -0.9f, 0.0f,
         -0.5f, 0.0f, 0.0f,
@@ -44,15 +45,20 @@ void GLWidgetLab1::initializeGL()
         m_colorArray.append(blueColor);
     }
 
-    //standard way
     loadShaders();
 
-    //QOpenGLShaderProgram way
-    //initShaders();
+    GLuint vertexBuf;
+    GLuint colorBuf;
+    glGenBuffers(1, &vertexBuf);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuf);
+    glBufferData(GL_ARRAY_BUFFER, m_vertexArray.count() * sizeof(GLfloat), m_vertexArray.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(m_positionAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-    glVertexAttribPointer(m_positionAttr, 3, GL_FLOAT, false, 0, m_vertexArray.data());
-    glVertexAttribPointer(m_colorAttr, 3, GL_FLOAT, false, 0, m_colorArray.data());
-
+    glGenBuffers( 1, &colorBuf);
+    glBindBuffer(GL_ARRAY_BUFFER, colorBuf);
+    glBufferData(GL_ARRAY_BUFFER, m_colorArray.count() * sizeof(GLfloat), m_colorArray.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(m_colorAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER,0);
 }
 
 void GLWidgetLab1::paintGL()
@@ -60,30 +66,29 @@ void GLWidgetLab1::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.2,0.2,0.2,1.0);
 
-    //standard way
     glUseProgram(m_shaderProgram);
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(m_positionAttr);
+    glEnableVertexAttribArray(m_colorAttr);
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glDrawArrays(GL_QUADS, 3, 4);
     glDrawArrays(GL_POLYGON, 7, m_circlePointsCount);
 
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(m_positionAttr);
+    glDisableVertexAttribArray(m_colorAttr);
     glUseProgram(0);
 
 
     //QOpenGLShaderProgram way
     /*
     m_qShaderProgram->bind();
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(m_positionAttr);
+    glEnableVertexAttribArray(m_colorAttr);
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(m_positionAttr);
+    glDisableVertexAttribArray(m_colorAttr);
     m_qShaderProgram->release();
     */
 }

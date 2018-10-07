@@ -1,8 +1,5 @@
 #include "glwidget.h"
 #include <QFile>
-#include <fstream>
-#include <string>
-#include <algorithm>
 
 GLWidget::GLWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
@@ -44,9 +41,8 @@ void GLWidget::loadShaders()
     GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
-    //читаем вершинный шейдер из файла
+    //читаем текст шейдеров из файлов
     std::string vertexShaderCode = readFromFile(m_vshaderPath);
-    //читаем фрагментный шейдер из файла
     std::string fragmentShaderCode = readFromFile(m_fshaderPath);
 
     GLint result = GL_FALSE;
@@ -63,7 +59,8 @@ void GLWidget::loadShaders()
     glGetShaderiv(vertexShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
     std::vector<char> vertexShaderErrorMessage(infoLogLength);
     glGetShaderInfoLog(vertexShaderID, infoLogLength, NULL, &vertexShaderErrorMessage[0]);
-    fprintf(stdout, "%s\n", &vertexShaderErrorMessage[0]);
+    if(&vertexShaderErrorMessage[0])
+        qDebug() << &vertexShaderErrorMessage[0];
 
     //Компилируем фрагментный шейдер
     qDebug() << "Compiling shader : " <<  m_fshaderPath;
@@ -76,9 +73,10 @@ void GLWidget::loadShaders()
     glGetShaderiv(fragmentShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
     std::vector<char> fragmentShaderErrorMessage(infoLogLength);
     glGetShaderInfoLog(fragmentShaderID, infoLogLength, NULL, &fragmentShaderErrorMessage[0]);
-    fprintf(stdout, "%s\n", &fragmentShaderErrorMessage[0]);
+    if(&fragmentShaderErrorMessage[0])
+        qDebug() << &fragmentShaderErrorMessage[0];
 
-    fprintf(stdout, "Linking program\n");
+    qDebug() << "Linking program\n";
     m_shaderProgram = glCreateProgram();
     glAttachShader(m_shaderProgram, vertexShaderID);
     glAttachShader(m_shaderProgram, fragmentShaderID);
@@ -89,7 +87,8 @@ void GLWidget::loadShaders()
     glGetProgramiv(m_shaderProgram, GL_INFO_LOG_LENGTH, &infoLogLength);
     std::vector<char> programErrorMessage( std::max(infoLogLength, int(1)));
     glGetProgramInfoLog(m_shaderProgram, infoLogLength, NULL, &programErrorMessage[0]);
-    fprintf(stdout, "%s\n", &programErrorMessage[0]);
+    if (&programErrorMessage[0])
+        qDebug() << &programErrorMessage[0];
 
     glDeleteShader(vertexShaderID);
     glDeleteShader(fragmentShaderID);

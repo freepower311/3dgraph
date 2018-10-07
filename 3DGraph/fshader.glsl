@@ -1,9 +1,10 @@
 #version 330 core
 
 in lowp vec3 col;
+out vec4 fragColor;
 
 void main()
 {
-   gl_FragColor.xyz = col;
-   gl_FragColor.w = 1.0;
+    fragColor.xyz = col;
+    fragColor.w = 1.0;
 }
