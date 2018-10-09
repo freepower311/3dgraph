@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTimer>
 
 namespace Ui
 {
@@ -19,6 +20,7 @@ private slots:
     void updateScene();
 
 private:
+    QTimer timer;
     Ui::MainWindow *ui;
 };
 
