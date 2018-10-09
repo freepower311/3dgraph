@@ -3,7 +3,7 @@
 
 #include <QOpenGLFunctions>
 #include <QOpenGLWidget>
-#include <QOpenGLShaderProgram>
+#include <QDebug>
 #include <QVector>
 
 class GLWidget : public QOpenGLWidget, public QOpenGLFunctions
@@ -14,7 +14,6 @@ public:
 protected:
     void loadShaders();
 
-    QOpenGLShaderProgram *m_qShaderProgram;
     GLuint m_shaderProgram;
     GLuint m_positionAttr;
     GLuint m_colorAttr;
