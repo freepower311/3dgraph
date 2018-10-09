@@ -5,21 +5,6 @@ GLWidget::GLWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
 }
 
-void GLWidget::initShaders()
-{
-    //compile shaders
-    m_qShaderProgram = new QOpenGLShaderProgram(this);
-    m_qShaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, m_vshaderPath);
-    m_qShaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, m_fshaderPath);
-    if (!m_qShaderProgram->link())
-    {
-        qWarning("Error: unable to link a shader program");
-        return;
-    }
-    m_positionAttr = m_qShaderProgram->attributeLocation("positionAttr");
-    m_colorAttr = m_qShaderProgram->attributeLocation("colorAttr");
-}
-
 std::string readFromFile(QString &path)
 {
     QFile file(path);

@@ -77,18 +77,4 @@ void GLWidgetLab1::paintGL()
     glDisableVertexAttribArray(m_positionAttr);
     glDisableVertexAttribArray(m_colorAttr);
     glUseProgram(0);
-
-
-    //QOpenGLShaderProgram way
-    /*
-    m_qShaderProgram->bind();
-    glEnableVertexAttribArray(m_positionAttr);
-    glEnableVertexAttribArray(m_colorAttr);
-
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    glDisableVertexAttribArray(m_positionAttr);
-    glDisableVertexAttribArray(m_colorAttr);
-    m_qShaderProgram->release();
-    */
 }

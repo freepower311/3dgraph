@@ -12,7 +12,6 @@ public:
     explicit GLWidget(QWidget* parent);
 
 protected:
-    void initShaders();
     void loadShaders();
 
     QOpenGLShaderProgram *m_qShaderProgram;
