@@ -1,60 +1,82 @@
 #include "glwidget.h"
+#include <QFile>
 
 GLWidget::GLWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
-    timeCounter = 0;
 }
 
-void GLWidget::initializeGL(){
-    initializeOpenGLFunctions();
-    initShaders();
-}
-
-void GLWidget::paintGL(){
-    glClear(GL_COLOR_BUFFER_BIT);
-    timeCounter++;
-    m_program->setUniformValue(pointerToTime, timeCounter);
-
-    glBegin(GL_POINTS);
-    for(int i = 0;i<10;i++){
-        for(int j = 0;j<100;j++){
-            glVertex3f(i*0.2 -1, j * 0.02 -1 + (timeCounter%100)/100, 0);
+std::string readFromFile(QString &path)
+{
+    QFile file(path);
+    QString textFromFile;
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    if(file.isOpen())
+    {
+        while(!file.atEnd())
+        {
+            textFromFile += file.readLine().data();
         }
     }
-    for(int i = 0;i<100;i++){
-        for(int j = 0;j<10;j++){
-            glVertex3f(i*0.02 -1 + (timeCounter%100)/100, j * 0.2 -1,0);
-        }
-    }
-    glEnd();
+    return textFromFile.toStdString();
 }
 
-void GLWidget::initShaders() {
-    const GLubyte *extensions;
-    extensions = glGetString(GL_EXTENSIONS);
-    int i = 0;
-    QString extensionsString;
-    while (extensions[i] != 0) {
-        extensionsString += extensions[i];
-        i++;
-    }
-    if (!extensionsString.contains("GL_ARB_vertex_shader") ||
-            !extensionsString.contains("GL_ARB_fragment_shader") ||
-            !extensionsString.contains("GL_ARB_shader_objects") ||
-            !extensionsString.contains("GL_ARB_shading_language_100"))
-    {
-        exit(0);
-    }
+void GLWidget::loadShaders()
+{
+    //создаем шейдеры
+    GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+    GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
-    //compile shaders
-    m_program = new QOpenGLShaderProgram(this);
-    m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshader.glsl");
-    m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fshader.glsl");
-    if (!m_program->link())
-    {
-        qWarning("Error: unable to link a shader program");
-        return;
-    }
-    pointerToTime = m_program->uniformLocation( "time" );
-    m_program->bind();
+    //читаем текст шейдеров из файлов
+    std::string vertexShaderCode = readFromFile(m_vshaderPath);
+    std::string fragmentShaderCode = readFromFile(m_fshaderPath);
+
+    GLint result = GL_FALSE;
+    int infoLogLength;
+
+    //Компилируем вершинный шейдер
+    qDebug() << "Compiling shader : " <<  m_vshaderPath;
+    char const * vertexSourcePointer = vertexShaderCode.c_str();
+    glShaderSource(vertexShaderID, 1, &vertexSourcePointer , NULL);
+    glCompileShader(vertexShaderID);
+
+    // Устанавливаем параметры
+    glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &result);
+    glGetShaderiv(vertexShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
+    std::vector<char> vertexShaderErrorMessage(infoLogLength);
+    glGetShaderInfoLog(vertexShaderID, infoLogLength, NULL, &vertexShaderErrorMessage[0]);
+    if(&vertexShaderErrorMessage[0])
+        qDebug() << &vertexShaderErrorMessage[0];
+
+    //Компилируем фрагментный шейдер
+    qDebug() << "Compiling shader : " <<  m_fshaderPath;
+    char const * fragmentSourcePointer = fragmentShaderCode.c_str();
+    glShaderSource(fragmentShaderID, 1, &fragmentSourcePointer , NULL);
+    glCompileShader(fragmentShaderID);
+
+    //Устанавливаем параметры
+    glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &result);
+    glGetShaderiv(fragmentShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
+    std::vector<char> fragmentShaderErrorMessage(infoLogLength);
+    glGetShaderInfoLog(fragmentShaderID, infoLogLength, NULL, &fragmentShaderErrorMessage[0]);
+    if(&fragmentShaderErrorMessage[0])
+        qDebug() << &fragmentShaderErrorMessage[0];
+
+    qDebug() << "Linking program\n";
+    m_shaderProgram = glCreateProgram();
+    glAttachShader(m_shaderProgram, vertexShaderID);
+    glAttachShader(m_shaderProgram, fragmentShaderID);
+    glLinkProgram(m_shaderProgram);
+
+    //Устанавливаем параметры
+    glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &result);
+    glGetProgramiv(m_shaderProgram, GL_INFO_LOG_LENGTH, &infoLogLength);
+    std::vector<char> programErrorMessage( std::max(infoLogLength, int(1)));
+    glGetProgramInfoLog(m_shaderProgram, infoLogLength, NULL, &programErrorMessage[0]);
+    if (&programErrorMessage[0])
+        qDebug() << &programErrorMessage[0];
+
+    glDeleteShader(vertexShaderID);
+    glDeleteShader(fragmentShaderID);
+    m_positionAttr = glGetAttribLocation(m_shaderProgram, "positionAttr");
+    m_colorAttr = glGetAttribLocation(m_shaderProgram, "colorAttr");
 }

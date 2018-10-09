@@ -7,16 +7,16 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Приложение OpenGL</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="GLWidget" name="GLScene" native="true"/>
+     <widget class="GLWidgetLab1" name="GLScene" native="true"/>
     </item>
    </layout>
   </widget>
@@ -34,9 +34,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>GLWidget</class>
+   <class>GLWidgetLab1</class>
    <extends>QWidget</extends>
-   <header>glwidget.h</header>
+   <header>glwidgetlab1.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
