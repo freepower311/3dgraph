@@ -1,6 +1,6 @@
 #include "glwidgetlab2.h"
 
-GLWidgetLab2::GLWidgetLab2(QWidget* parent):GLWidget(parent),
+GLWidgetLab2::GLWidgetLab2(QWidget* parent):GLEngineWidget(parent),
     m_circlePointsCount(50)
 {
     m_vshaderPath = ":/vshader.glsl";
@@ -11,14 +11,15 @@ void GLWidgetLab2::initializeGL()
 {
     initializeOpenGLFunctions();
     //Генерация вершин и их цвета
+    const GLfloat z = 0.0;
     m_vertexArray = {
-        -0.9f, -0.9f, 0.0f,
-        -0.5f, 0.0f, 0.0f,
-        -0.1f, -0.9f, 0.0f,
-        0.1f, 0.1f, 0.0f,
-        0.1f, 0.4f, 0.0f,
-        0.5f, 0.4f, 0.0f,
-        0.5f, 0.1f, 0.0f
+        -0.9f, -0.9f, z,
+        -0.5f, 0.0f, z,
+        -0.1f, -0.9f, z,
+        0.1f, 0.1f, z,
+        0.1f, 0.4f, z,
+        0.5f, 0.4f, z,
+        0.5f, 0.1f, z
     };
     m_colorArray = {
         1.0f, 0.0f, 0.0f,
@@ -33,7 +34,7 @@ void GLWidgetLab2::initializeGL()
     {
         m_vertexArray.append(-0.5 + 0.2*cos(i*2*M_PI/m_circlePointsCount));
         m_vertexArray.append(0.5 + 0.2*sin(i*2*M_PI/m_circlePointsCount));
-        m_vertexArray.append(0.0);
+        m_vertexArray.append(z);
     }
     const GLfloat redColor = 1.0;
     const GLfloat greenColor = 1.0;
@@ -70,6 +71,9 @@ void GLWidgetLab2::paintGL()
     glEnableVertexAttribArray(m_positionAttr);
     glEnableVertexAttribArray(m_colorAttr);
 
+    QMatrix4x4 matrix = projection*translation*rotation;
+    glUniformMatrix4fv(m_matrixAttr, 1 , 0, matrix.data());
+
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glDrawArrays(GL_QUADS, 3, 4);
@@ -80,10 +84,3 @@ void GLWidgetLab2::paintGL()
     glDisableVertexAttribArray(m_colorAttr);
     glUseProgram(0);
 }
-
-void GLWidgetLab2::wheelEvent(QWheelEvent *event)
-{
-    int direction = (event->angleDelta().y() > 0)? 1 : -1;
-    GLWidget::wheelEvent(event);
-}
-

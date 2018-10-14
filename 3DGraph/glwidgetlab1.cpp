@@ -1,6 +1,6 @@
 #include "glwidgetlab1.h"
 
-GLWidgetLab1::GLWidgetLab1(QWidget* parent):GLWidget(parent),
+GLWidgetLab1::GLWidgetLab1(QWidget* parent):GLEngineWidget(parent),
     m_circlePointsCount(50)
 {
     m_vshaderPath = ":/vshader.glsl";

@@ -27,18 +27,19 @@ LIBS += -lopengl32
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    glwidget.cpp \
     glwidgetlab1.cpp \
-    glwidgetlab2.cpp
+    glwidgetlab2.cpp \
+    glenginewidget.cpp
 
 HEADERS += \
         mainwindow.h \
-    glwidget.h \
     glwidgetlab1.h \
-    glwidgetlab2.h
+    glwidgetlab2.h \
+    glenginewidget.h
 
 FORMS += \
         mainwindow.ui
 
 RESOURCES += \
-    shader.qrc
+    shader.qrc \
+    textures.qrc

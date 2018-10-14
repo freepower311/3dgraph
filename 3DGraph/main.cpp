@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include <QApplication>
-#include "glwidget.h"
+#include "glenginewidget.h"
 
 int main(int argc, char *argv[])
 {
