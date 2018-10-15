@@ -6,12 +6,16 @@
 #include <QDebug>
 #include <QVector>
 #include <QMatrix4x4>
+#include <QMatrix3x3>
 #include <QVector2D>
 #include <QVector3D>
+#include <QVector4D>
 #include <QOpenGLTexture>
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QQuaternion>
+
+const float PI =3.141592653;
 
 class GLEngineWidget : public QOpenGLWidget, public QOpenGLFunctions
 {
@@ -27,25 +31,29 @@ protected:
     void keyPressEvent(QKeyEvent *e);
     void resizeGL(int w, int h);
     void initTextures();
+    void resetCamera();
 
     GLuint m_shaderProgram;
     GLuint m_positionAttr;
     GLuint m_colorAttr;
     GLuint m_texCoordAttr;
+    GLuint m_matrixAttr;
     QVector<GLfloat> m_vertexArray;
     QVector<GLfloat> m_colorArray;
     QVector<GLfloat> m_textureCoordinates;
     QString m_vshaderPath;
     QString m_fshaderPath;
-
-    GLuint m_matrixAttr;
-
     QOpenGLTexture *texture;
     QMatrix4x4 projection;
-    QMatrix4x4 rotation;
-    QMatrix4x4 translation;
     QVector2D mousePressPosition;
-    QVector3D rotationAxis;
+    QVector3D eye;
+    QVector3D center;
+    QVector3D up;
+    double cameraX;
+    double cameraY;
+    double cameraZ;
+    double cameraAngleX;
+    double cameraAngleY;
 };
 
 #endif // GLWIDGET_H

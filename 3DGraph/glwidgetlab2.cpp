@@ -11,15 +11,15 @@ void GLWidgetLab2::initializeGL()
 {
     initializeOpenGLFunctions();
     //Генерация вершин и их цвета
-    const GLfloat z = -5.0;
+    const GLfloat zPos = -5.0;
     m_vertexArray = {
-        -0.9f, -0.9f, z,
-        -0.5f, 0.0f, z,
-        -0.1f, -0.9f, z,
-        0.1f, 0.1f, z,
-        0.1f, 0.4f, z,
-        0.5f, 0.4f, z,
-        0.5f, 0.1f, z
+        -0.9f, -0.9f, zPos,
+        -0.5f, 0.0f, zPos,
+        -0.1f, -0.9f, zPos,
+        0.1f, 0.1f, zPos,
+        0.1f, 0.4f, zPos,
+        0.5f, 0.4f, zPos,
+        0.5f, 0.1f, zPos
     };
     m_colorArray = {
         1.0f, 0.0f, 0.0f,
@@ -91,14 +91,16 @@ void GLWidgetLab2::paintGL()
     glEnableVertexAttribArray(m_positionAttr);
     glEnableVertexAttribArray(m_colorAttr);
     glEnableVertexAttribArray(m_texCoordAttr);
-    texture->bind();
 
-    QMatrix4x4 matrix = projection*translation*rotation;;//projection*translation*rotation;
+    texture->bind();
+    QMatrix4x4 matrix = projection;
+    eye = {cameraX,cameraY,cameraZ};
+    center = {cameraX-sin(cameraAngleX/180*PI),cameraY+(tan(cameraAngleY/180*PI)),cameraZ-cos(cameraAngleX/180*PI)};
+    matrix.lookAt(eye,center,up);
     glUniformMatrix4fv(m_matrixAttr, 1 , 0, matrix.data());
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glDrawArrays(GL_QUADS, 3, 4);
-    glDrawArrays(GL_POLYGON, 7, m_circlePointsCount);
 
     glDisableVertexAttribArray(m_texCoordAttr);
     glDisableVertexAttribArray(m_positionAttr);

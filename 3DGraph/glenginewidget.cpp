@@ -5,8 +5,15 @@
 GLEngineWidget::GLEngineWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
     setFocusPolicy(Qt::StrongFocus);
-    rotation.setToIdentity();
-    translation.setToIdentity();
+    resetCamera();
+}
+void GLEngineWidget::resetCamera(){
+    up = {0,1,0};
+    cameraX = 0;
+    cameraY = 0;
+    cameraZ = 0;
+    cameraAngleX = 0;
+    cameraAngleY = 0;
 }
 
 std::string readFromFile(QString &path)
@@ -97,13 +104,9 @@ void GLEngineWidget::mouseMoveEvent(QMouseEvent *e)
 {
     QVector2D diff = QVector2D(e->localPos()) - mousePressPosition;
     mousePressPosition = QVector2D(e->localPos());
-    QVector3D norma = QVector3D(diff.y(), diff.x(), 0.0).normalized();
-    qreal angle = diff.length() / 3.0;
-    rotationAxis = (rotationAxis + norma).normalized();
-    QVector3D rotationAxis1 = {1,0,0};
-    QVector3D rotationAxis2 = {0,1,0};
-    rotation.rotate(diff.x()/20.0, rotationAxis2);
-    rotation.rotate(diff.y()/20.0, rotationAxis1);
+    const double rotationSens = 0.2;
+    cameraAngleX += diff.x()*rotationSens;
+    cameraAngleY += diff.y()*rotationSens;
     update();
 }
 
@@ -114,28 +117,26 @@ void GLEngineWidget::mouseReleaseEvent(QMouseEvent *e)
 
 void GLEngineWidget::keyPressEvent(QKeyEvent *e)
 {
+    const double cameraSpeed = 0.1;
     switch (e->key()) {
     case Qt::Key_F1:
-        rotation.setToIdentity();
-        translation.setToIdentity();
+        resetCamera();
         break;
     case Qt::Key_A:
-        translation.translate(0.1,0.0,0.0);
+        cameraX += (float)sin(( cameraAngleX - 90)/180*PI) * cameraSpeed;
+        cameraZ += (float)cos(( cameraAngleX - 90)/180*PI) * cameraSpeed;
         break;
     case Qt::Key_W:
-        translation.translate(0.0,0.0,0.1);
+        cameraX -= (float)sin(cameraAngleX/180*PI) * cameraSpeed;
+        cameraZ -= (float)cos(cameraAngleX/180*PI) * cameraSpeed;
         break;
     case Qt::Key_S:
-        translation.translate(0.0,0.0,-0.1);
+        cameraX += (float)sin(cameraAngleX/180*PI) * cameraSpeed;
+        cameraZ += (float)cos(cameraAngleX/180*PI) * cameraSpeed;
         break;
     case Qt::Key_D:
-        translation.translate(-0.1,0.0,0.0);
-        break;
-    case Qt::Key_Z:
-        translation.translate(0.0,0.1,0.0);
-        break;
-    case Qt::Key_X:
-        translation.translate(0.0,-0.1,0.0);
+        cameraX += (float)sin(( cameraAngleX + 90)/180*PI) * cameraSpeed;
+        cameraZ += (float)cos(( cameraAngleX + 90)/180*PI) * cameraSpeed;
         break;
     default:
         break;
@@ -151,20 +152,16 @@ void GLEngineWidget::resizeGL(int w, int h)
     const qreal zNear = 0.0, zFar = 7.0, fov = 45.0;
     projection.setToIdentity();
     projection.perspective(fov, aspect, zNear, zFar);
-
 }
 
 void GLEngineWidget::initTextures()
 {
     // Load cube.png image
     texture = new QOpenGLTexture(QImage(":/wood.png").mirrored());
-
     // Set nearest filtering mode for texture minification
     texture->setMinificationFilter(QOpenGLTexture::Nearest);
-
     // Set bilinear filtering mode for texture magnification
     texture->setMagnificationFilter(QOpenGLTexture::Linear);
-
     // Wrap texture coordinates by repeating
     // f.ex. texture coordinate (1.1, 1.2) is same as (0.1, 0.2)
     texture->setWrapMode(QOpenGLTexture::Repeat);
