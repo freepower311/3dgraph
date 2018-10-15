@@ -13,47 +13,57 @@ void GLWidgetLab2::initializeGL()
     //Генерация вершин и их цвета
     const GLfloat zPos = -5.0;
     m_vertexArray = {
-        -0.9f, -0.9f, zPos,
-        -0.5f, 0.0f, zPos,
-        -0.1f, -0.9f, zPos,
-        0.1f, 0.1f, zPos,
-        0.1f, 0.4f, zPos,
-        0.5f, 0.4f, zPos,
-        0.5f, 0.1f, zPos
-    };
-    m_colorArray = {
-        1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 1.0f,
-        0.0f, 1.0f, 0.0f
+        -0.5f, -0.5f, zPos,
+        -0.5f, -0.5f, zPos+1.0,
+        0.5f, -0.5f, zPos+1.0,
+        0.5f, -0.5f, zPos,
+
+        -0.5f, -0.5f, zPos,
+        -0.5f, 0.5f, zPos,
+        0.5f, 0.5f, zPos,
+        0.5f, -0.5f, zPos,
+
+        -0.5f, -0.5f, zPos,
+        -0.5f, -0.5f, zPos+1.0,
+        -0.5f, 0.5f, zPos+1.0,
+        -0.5f, 0.5f, zPos,
+
+        -0.5f, -0.5f, zPos,
+        -0.5f, 0.5f, zPos,
+        0.5f, 0.5f, zPos+1.0,
+        0.5f, -0.5f, zPos+1.0,
+
+        -0.5f, -0.5f, zPos+1.0,
+        -0.5f, 0.5f, zPos+1.0,
+        0.5f, 0.5f, zPos,
+        0.5f, -0.5f, zPos
     };
     m_textureCoordinates = {
         0.0f, 0.0f,
         0.0f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 0.0f,
+        0.5f, 1.0f,
+        0.5f, 0.0f,
+
         0.0f, 0.0f,
         0.0f, 1.0f,
-        1.0f, 1.0f
+        0.5f, 1.0f,
+        0.5f, 0.0f,
+
+        0.0f, 0.0f,
+        0.0f, 1.0f,
+        0.5f, 1.0f,
+        0.5f, 0.0f,
+
+        0.5f, 0.0f,
+        0.5f, 1.0f,
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+
+        0.5f, 0.0f,
+        0.5f, 1.0f,
+        1.0f, 1.0f,
+        1.0f, 0.0f
     };
-    /*for(int i = 0; i < m_circlePointsCount; i++)
-    {
-        m_vertexArray.append(-0.5 + 0.2*cos(i*2*M_PI/m_circlePointsCount));
-        m_vertexArray.append(0.5 + 0.2*sin(i*2*M_PI/m_circlePointsCount));
-        m_vertexArray.append(z);
-    }
-    const GLfloat redColor = 1.0;
-    const GLfloat greenColor = 1.0;
-    const GLfloat blueColor = 0.0;
-    for(int i = 0; i < m_circlePointsCount; i++)
-    {
-        m_colorArray.append(redColor);
-        m_colorArray.append(greenColor);
-        m_colorArray.append(blueColor);
-    }*/
 
     loadShaders();
     initTextures();
@@ -80,6 +90,9 @@ void GLWidgetLab2::initializeGL()
 
     GLint tex = glGetUniformLocation(m_shaderProgram, "texture");
     glUniform1f(tex, 0);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void GLWidgetLab2::paintGL()
@@ -99,8 +112,7 @@ void GLWidgetLab2::paintGL()
     matrix.lookAt(eye,center,up);
     glUniformMatrix4fv(m_matrixAttr, 1 , 0, matrix.data());
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glDrawArrays(GL_QUADS, 3, 4);
+    glDrawArrays(GL_QUADS, 0, 20);
 
     glDisableVertexAttribArray(m_texCoordAttr);
     glDisableVertexAttribArray(m_positionAttr);

@@ -157,7 +157,7 @@ void GLEngineWidget::resizeGL(int w, int h)
 void GLEngineWidget::initTextures()
 {
     // Load cube.png image
-    texture = new QOpenGLTexture(QImage(":/wood.png").mirrored());
+    texture = new QOpenGLTexture(QImage(":/texture.png").mirrored());
     // Set nearest filtering mode for texture minification
     texture->setMinificationFilter(QOpenGLTexture::Nearest);
     // Set bilinear filtering mode for texture magnification
