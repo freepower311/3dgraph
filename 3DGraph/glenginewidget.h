@@ -26,12 +26,15 @@ protected:
     void mouseReleaseEvent(QMouseEvent *e);
     void keyPressEvent(QKeyEvent *e);
     void resizeGL(int w, int h);
+    void initTextures();
 
     GLuint m_shaderProgram;
     GLuint m_positionAttr;
     GLuint m_colorAttr;
+    GLuint m_texCoordAttr;
     QVector<GLfloat> m_vertexArray;
     QVector<GLfloat> m_colorArray;
+    QVector<GLfloat> m_textureCoordinates;
     QString m_vshaderPath;
     QString m_fshaderPath;
 

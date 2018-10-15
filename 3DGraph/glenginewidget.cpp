@@ -1,12 +1,12 @@
 #include "glenginewidget.h"
 #include <QFile>
+#include <QApplication>
 
 GLEngineWidget::GLEngineWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
     setFocusPolicy(Qt::StrongFocus);
     rotation.setToIdentity();
     translation.setToIdentity();
-    translation.translate(0.0, 0.0, -5.0);
 }
 
 std::string readFromFile(QString &path)
@@ -83,12 +83,14 @@ void GLEngineWidget::loadShaders()
     glDeleteShader(fragmentShaderID);
     m_positionAttr = glGetAttribLocation(m_shaderProgram, "positionAttr");
     m_colorAttr = glGetAttribLocation(m_shaderProgram, "colorAttr");
+    m_texCoordAttr = glGetAttribLocation(m_shaderProgram, "texCoordIn");
     m_matrixAttr = glGetUniformLocation(m_shaderProgram, "mvp_matrix");
 }
 
 void GLEngineWidget::mousePressEvent(QMouseEvent *e)
 {
     mousePressPosition = QVector2D(e->localPos());
+    QApplication::setOverrideCursor(Qt::BlankCursor);
 }
 
 void GLEngineWidget::mouseMoveEvent(QMouseEvent *e)
@@ -98,13 +100,16 @@ void GLEngineWidget::mouseMoveEvent(QMouseEvent *e)
     QVector3D norma = QVector3D(diff.y(), diff.x(), 0.0).normalized();
     qreal angle = diff.length() / 3.0;
     rotationAxis = (rotationAxis + norma).normalized();
-    rotation.rotate(angle, rotationAxis);
+    QVector3D rotationAxis1 = {1,0,0};
+    QVector3D rotationAxis2 = {0,1,0};
+    rotation.rotate(diff.x()/20.0, rotationAxis2);
+    rotation.rotate(diff.y()/20.0, rotationAxis1);
     update();
 }
 
 void GLEngineWidget::mouseReleaseEvent(QMouseEvent *e)
 {
-
+    QApplication::setOverrideCursor(Qt::ArrowCursor);
 }
 
 void GLEngineWidget::keyPressEvent(QKeyEvent *e)
@@ -113,7 +118,6 @@ void GLEngineWidget::keyPressEvent(QKeyEvent *e)
     case Qt::Key_F1:
         rotation.setToIdentity();
         translation.setToIdentity();
-        translation.translate(0.0, 0.0, -5.0);
         break;
     case Qt::Key_A:
         translation.translate(0.1,0.0,0.0);
@@ -137,6 +141,7 @@ void GLEngineWidget::keyPressEvent(QKeyEvent *e)
         break;
     }
     update();
+
     QOpenGLWidget::keyPressEvent(e);
 }
 
@@ -147,4 +152,20 @@ void GLEngineWidget::resizeGL(int w, int h)
     projection.setToIdentity();
     projection.perspective(fov, aspect, zNear, zFar);
 
+}
+
+void GLEngineWidget::initTextures()
+{
+    // Load cube.png image
+    texture = new QOpenGLTexture(QImage(":/wood.png").mirrored());
+
+    // Set nearest filtering mode for texture minification
+    texture->setMinificationFilter(QOpenGLTexture::Nearest);
+
+    // Set bilinear filtering mode for texture magnification
+    texture->setMagnificationFilter(QOpenGLTexture::Linear);
+
+    // Wrap texture coordinates by repeating
+    // f.ex. texture coordinate (1.1, 1.2) is same as (0.1, 0.2)
+    texture->setWrapMode(QOpenGLTexture::Repeat);
 }
