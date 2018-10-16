@@ -5,16 +5,12 @@
 #include <QWheelEvent>
 #include <QOpenGLTexture>
 
-class GLWidgetLab2 : public GLEngineWidget
+class GLWidgetLab : public GLEngineWidget
 {
 public:
-    explicit GLWidgetLab2(QWidget* parent);
+    explicit GLWidgetLab(QWidget* parent);
     void initializeGL();
     void paintGL();
-
-private:
-    const int m_circlePointsCount;
-    QOpenGLTexture *m_texture;
 };
 
 #endif // GLWIDGETLAB2_H

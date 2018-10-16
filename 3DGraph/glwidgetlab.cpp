@@ -1,21 +1,20 @@
-#include "glwidgetlab2.h"
+#include "glwidgetlab.h"
 
-GLWidgetLab2::GLWidgetLab2(QWidget* parent):GLEngineWidget(parent),
-    m_circlePointsCount(50)
+GLWidgetLab::GLWidgetLab(QWidget* parent):GLEngineWidget(parent)
 {
     m_vshaderPath = ":/vshader.glsl";
     m_fshaderPath = ":/fshader.glsl";
 }
 
-void GLWidgetLab2::initializeGL()
+void GLWidgetLab::initializeGL()
 {
     initializeOpenGLFunctions();
     //Генерация вершин и их цвета
     const GLfloat zPos = -5.0;
     m_vertexArray = {
         -0.5f, -0.5f, zPos,
-        -0.5f, -0.5f, zPos+1.0,
-        0.5f, -0.5f, zPos+1.0,
+        -0.5f, -0.5f, zPos+1.0f,
+        0.5f, -0.5f, zPos+1.0f,
         0.5f, -0.5f, zPos,
 
         -0.5f, -0.5f, zPos,
@@ -24,17 +23,17 @@ void GLWidgetLab2::initializeGL()
         0.5f, -0.5f, zPos,
 
         -0.5f, -0.5f, zPos,
-        -0.5f, -0.5f, zPos+1.0,
-        -0.5f, 0.5f, zPos+1.0,
+        -0.5f, -0.5f, zPos+1.0f,
+        -0.5f, 0.5f, zPos+1.0f,
         -0.5f, 0.5f, zPos,
 
         -0.5f, -0.5f, zPos,
         -0.5f, 0.5f, zPos,
-        0.5f, 0.5f, zPos+1.0,
-        0.5f, -0.5f, zPos+1.0,
+        0.5f, 0.5f, zPos+1.0f,
+        0.5f, -0.5f, zPos+1.0f,
 
-        -0.5f, -0.5f, zPos+1.0,
-        -0.5f, 0.5f, zPos+1.0,
+        -0.5f, -0.5f, zPos+1.0f,
+        -0.5f, 0.5f, zPos+1.0f,
         0.5f, 0.5f, zPos,
         0.5f, -0.5f, zPos
     };
@@ -69,17 +68,11 @@ void GLWidgetLab2::initializeGL()
     initTextures();
 
     GLuint vertexBuf;
-    GLuint colorBuf;
     GLuint texCoordBuf;
     glGenBuffers(1, &vertexBuf);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuf);
     glBufferData(GL_ARRAY_BUFFER, m_vertexArray.count() * sizeof(GLfloat), m_vertexArray.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(m_positionAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glGenBuffers( 1, &colorBuf);
-    glBindBuffer(GL_ARRAY_BUFFER, colorBuf);
-    glBufferData(GL_ARRAY_BUFFER, m_colorArray.count() * sizeof(GLfloat), m_colorArray.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(m_colorAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glGenBuffers( 1, &texCoordBuf);
     glBindBuffer(GL_ARRAY_BUFFER, texCoordBuf);
@@ -93,29 +86,35 @@ void GLWidgetLab2::initializeGL()
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_DEPTH_TEST);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
 }
 
-void GLWidgetLab2::paintGL()
+void GLWidgetLab::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.2,0.2,0.2,1.0);
 
     glUseProgram(m_shaderProgram);
     glEnableVertexAttribArray(m_positionAttr);
-    glEnableVertexAttribArray(m_colorAttr);
     glEnableVertexAttribArray(m_texCoordAttr);
 
-    texture->bind();
-    QMatrix4x4 matrix = projection;
-    eye = {cameraX,cameraY,cameraZ};
-    center = {cameraX-sin(cameraAngleX/180*PI),cameraY+(tan(cameraAngleY/180*PI)),cameraZ-cos(cameraAngleX/180*PI)};
-    matrix.lookAt(eye,center,up);
+    m_texture->bind();
+    QMatrix4x4 matrix = m_projection;
+    m_eye = {m_cameraX,m_cameraY,m_cameraZ};
+    m_center = {m_cameraX-sin(m_cameraAngleX/180.0f*PI),
+              m_cameraY+(tan(m_cameraAngleY/180.0f*PI)),
+              m_cameraZ-cos(m_cameraAngleX/180.0f*PI)};
+    matrix.lookAt(m_eye,m_center,m_up);
     glUniformMatrix4fv(m_matrixAttr, 1 , 0, matrix.data());
 
     glDrawArrays(GL_QUADS, 0, 20);
 
     glDisableVertexAttribArray(m_texCoordAttr);
     glDisableVertexAttribArray(m_positionAttr);
-    glDisableVertexAttribArray(m_colorAttr);
     glUseProgram(0);
 }

@@ -7,13 +7,14 @@ GLEngineWidget::GLEngineWidget(QWidget* parent) : QOpenGLWidget(parent)
     setFocusPolicy(Qt::StrongFocus);
     resetCamera();
 }
+
 void GLEngineWidget::resetCamera(){
-    up = {0,1,0};
-    cameraX = 0;
-    cameraY = 0;
-    cameraZ = 0;
-    cameraAngleX = 0;
-    cameraAngleY = 0;
+    m_up = {0,1,0};
+    m_cameraX = 0;
+    m_cameraY = 0;
+    m_cameraZ = 0;
+    m_cameraAngleX = 0;
+    m_cameraAngleY = 0;
 }
 
 std::string readFromFile(QString &path)
@@ -89,30 +90,32 @@ void GLEngineWidget::loadShaders()
     glDeleteShader(vertexShaderID);
     glDeleteShader(fragmentShaderID);
     m_positionAttr = glGetAttribLocation(m_shaderProgram, "positionAttr");
-    m_colorAttr = glGetAttribLocation(m_shaderProgram, "colorAttr");
     m_texCoordAttr = glGetAttribLocation(m_shaderProgram, "texCoordIn");
     m_matrixAttr = glGetUniformLocation(m_shaderProgram, "mvp_matrix");
 }
 
 void GLEngineWidget::mousePressEvent(QMouseEvent *e)
 {
-    mousePressPosition = QVector2D(e->localPos());
+    m_mousePressPosition = QVector2D(e->localPos());
     QApplication::setOverrideCursor(Qt::BlankCursor);
+    QOpenGLWidget::mousePressEvent(e);
 }
 
 void GLEngineWidget::mouseMoveEvent(QMouseEvent *e)
 {
-    QVector2D diff = QVector2D(e->localPos()) - mousePressPosition;
-    mousePressPosition = QVector2D(e->localPos());
+    QVector2D diff = QVector2D(e->localPos()) - m_mousePressPosition;
+    m_mousePressPosition = QVector2D(e->localPos());
     const double rotationSens = 0.2;
-    cameraAngleX += diff.x()*rotationSens;
-    cameraAngleY += diff.y()*rotationSens;
+    m_cameraAngleX += diff.x()*rotationSens;
+    m_cameraAngleY += diff.y()*rotationSens;
     update();
+    QOpenGLWidget::mouseMoveEvent(e);
 }
 
 void GLEngineWidget::mouseReleaseEvent(QMouseEvent *e)
 {
     QApplication::setOverrideCursor(Qt::ArrowCursor);
+    QOpenGLWidget::mouseReleaseEvent(e);
 }
 
 void GLEngineWidget::keyPressEvent(QKeyEvent *e)
@@ -122,47 +125,50 @@ void GLEngineWidget::keyPressEvent(QKeyEvent *e)
     case Qt::Key_F1:
         resetCamera();
         break;
+    case 1060: //ф
     case Qt::Key_A:
-        cameraX += (float)sin(( cameraAngleX - 90)/180*PI) * cameraSpeed;
-        cameraZ += (float)cos(( cameraAngleX - 90)/180*PI) * cameraSpeed;
+        m_cameraX += (float)sin(( m_cameraAngleX - 90)/180*PI) * cameraSpeed;
+        m_cameraZ += (float)cos(( m_cameraAngleX - 90)/180*PI) * cameraSpeed;
         break;
+    case 1062: //ц
     case Qt::Key_W:
-        cameraX -= (float)sin(cameraAngleX/180*PI) * cameraSpeed;
-        cameraZ -= (float)cos(cameraAngleX/180*PI) * cameraSpeed;
+        m_cameraX -= (float)sin(m_cameraAngleX/180*PI) * cameraSpeed;
+        m_cameraZ -= (float)cos(m_cameraAngleX/180*PI) * cameraSpeed;
         break;
+    case 1067: //ы
     case Qt::Key_S:
-        cameraX += (float)sin(cameraAngleX/180*PI) * cameraSpeed;
-        cameraZ += (float)cos(cameraAngleX/180*PI) * cameraSpeed;
+        m_cameraX += (float)sin(m_cameraAngleX/180*PI) * cameraSpeed;
+        m_cameraZ += (float)cos(m_cameraAngleX/180*PI) * cameraSpeed;
         break;
+    case 1042: //в
     case Qt::Key_D:
-        cameraX += (float)sin(( cameraAngleX + 90)/180*PI) * cameraSpeed;
-        cameraZ += (float)cos(( cameraAngleX + 90)/180*PI) * cameraSpeed;
+        m_cameraX += (float)sin(( m_cameraAngleX + 90)/180*PI) * cameraSpeed;
+        m_cameraZ += (float)cos(( m_cameraAngleX + 90)/180*PI) * cameraSpeed;
         break;
     default:
         break;
     }
     update();
-
     QOpenGLWidget::keyPressEvent(e);
 }
 
 void GLEngineWidget::resizeGL(int w, int h)
 {
-    qreal aspect = qreal(w) / qreal(h ? h : 1);
-    const qreal zNear = 0.0, zFar = 7.0, fov = 45.0;
-    projection.setToIdentity();
-    projection.perspective(fov, aspect, zNear, zFar);
+    const qreal aspect = qreal(w) / qreal(h ? h : 1);
+    const qreal zNear = 0.2, zFar = 7.0, fov = 45.0;
+    m_projection.setToIdentity();
+    m_projection.perspective(fov, aspect, zNear, zFar);
 }
 
 void GLEngineWidget::initTextures()
 {
     // Load cube.png image
-    texture = new QOpenGLTexture(QImage(":/texture.png").mirrored());
+    m_texture = new QOpenGLTexture(QImage(":/texture.png").mirrored());
     // Set nearest filtering mode for texture minification
-    texture->setMinificationFilter(QOpenGLTexture::Nearest);
+    m_texture->setMinificationFilter(QOpenGLTexture::Nearest);
     // Set bilinear filtering mode for texture magnification
-    texture->setMagnificationFilter(QOpenGLTexture::Linear);
+    m_texture->setMagnificationFilter(QOpenGLTexture::Linear);
     // Wrap texture coordinates by repeating
     // f.ex. texture coordinate (1.1, 1.2) is same as (0.1, 0.2)
-    texture->setWrapMode(QOpenGLTexture::Repeat);
+    m_texture->setWrapMode(QOpenGLTexture::Repeat);
 }
