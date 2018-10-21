@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="GLWidgetLab2" name="GLScene" native="true"/>
+     <widget class="GLWidgetLab" name="GLScene" native="true"/>
     </item>
    </layout>
   </widget>
@@ -26,7 +26,7 @@
      <x>0</x>
      <y>0</y>
      <width>400</width>
-     <height>18</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
@@ -34,9 +34,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>GLWidgetLab2</class>
+   <class>GLWidgetLab</class>
    <extends>QWidget</extends>
-   <header>glwidgetlab2.h</header>
+   <header>glwidgetlab.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
