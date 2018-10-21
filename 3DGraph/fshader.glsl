@@ -1,10 +1,10 @@
 #version 330 core
 
-in lowp vec3 col;
+uniform sampler2D texture;
+in vec2 texCoord;
 out vec4 fragColor;
 
 void main()
 {
-    fragColor.xyz = col;
-    fragColor.w = 1.0;
+    fragColor = texture2D(texture, texCoord);
 }

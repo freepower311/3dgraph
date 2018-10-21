@@ -1,8 +1,20 @@
-#include "glwidget.h"
+#include "glenginewidget.h"
 #include <QFile>
+#include <QApplication>
 
-GLWidget::GLWidget(QWidget* parent) : QOpenGLWidget(parent)
+GLEngineWidget::GLEngineWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
+    setFocusPolicy(Qt::StrongFocus);
+    resetCamera();
+}
+
+void GLEngineWidget::resetCamera(){
+    m_up = {0,1,0};
+    m_cameraX = 0;
+    m_cameraY = 0;
+    m_cameraZ = 0;
+    m_cameraAngleX = 0;
+    m_cameraAngleY = 0;
 }
 
 std::string readFromFile(QString &path)
@@ -20,7 +32,7 @@ std::string readFromFile(QString &path)
     return textFromFile.toStdString();
 }
 
-void GLWidget::loadShaders()
+void GLEngineWidget::loadShaders()
 {
     //создаем шейдеры
     GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -78,5 +90,83 @@ void GLWidget::loadShaders()
     glDeleteShader(vertexShaderID);
     glDeleteShader(fragmentShaderID);
     m_positionAttr = glGetAttribLocation(m_shaderProgram, "positionAttr");
-    m_colorAttr = glGetAttribLocation(m_shaderProgram, "colorAttr");
+    m_texCoordAttr = glGetAttribLocation(m_shaderProgram, "texCoordIn");
+    m_matrixAttr = glGetUniformLocation(m_shaderProgram, "mvp_matrix");
+    GLint tex = glGetUniformLocation(m_shaderProgram, "texture");
+    glUniform1f(tex, 0);
+}
+
+void GLEngineWidget::mousePressEvent(QMouseEvent *e)
+{
+    m_mousePressPosition = QVector2D(e->localPos());
+    QApplication::setOverrideCursor(Qt::BlankCursor);
+    QOpenGLWidget::mousePressEvent(e);
+}
+
+void GLEngineWidget::mouseMoveEvent(QMouseEvent *e)
+{
+    QVector2D diff = QVector2D(e->localPos()) - m_mousePressPosition;
+    m_mousePressPosition = QVector2D(e->localPos());
+    const double rotationSens = 0.2;
+    m_cameraAngleX += diff.x()*rotationSens;
+    m_cameraAngleY += diff.y()*rotationSens;
+    update();
+    QOpenGLWidget::mouseMoveEvent(e);
+}
+
+void GLEngineWidget::mouseReleaseEvent(QMouseEvent *e)
+{
+    QApplication::setOverrideCursor(Qt::ArrowCursor);
+    QOpenGLWidget::mouseReleaseEvent(e);
+}
+
+void GLEngineWidget::keyPressEvent(QKeyEvent *e)
+{
+    const double cameraSpeed = 0.1;
+    switch (e->key()) {
+    case Qt::Key_F1:
+        resetCamera();
+        break;
+    case 1060: //ф
+    case Qt::Key_A:
+        m_cameraX += (float)sin(( m_cameraAngleX - 90)/180*PI) * cameraSpeed;
+        m_cameraZ += (float)cos(( m_cameraAngleX - 90)/180*PI) * cameraSpeed;
+        break;
+    case 1062: //ц
+    case Qt::Key_W:
+        m_cameraX -= (float)sin(m_cameraAngleX/180*PI) * cameraSpeed;
+        m_cameraZ -= (float)cos(m_cameraAngleX/180*PI) * cameraSpeed;
+        break;
+    case 1067: //ы
+    case Qt::Key_S:
+        m_cameraX += (float)sin(m_cameraAngleX/180*PI) * cameraSpeed;
+        m_cameraZ += (float)cos(m_cameraAngleX/180*PI) * cameraSpeed;
+        break;
+    case 1042: //в
+    case Qt::Key_D:
+        m_cameraX += (float)sin(( m_cameraAngleX + 90)/180*PI) * cameraSpeed;
+        m_cameraZ += (float)cos(( m_cameraAngleX + 90)/180*PI) * cameraSpeed;
+        break;
+    default:
+        break;
+    }
+    update();
+    QOpenGLWidget::keyPressEvent(e);
+}
+
+void GLEngineWidget::resizeGL(int w, int h)
+{
+    const qreal aspect = qreal(w) / qreal(h ? h : 1);
+    const qreal zNear = 0.2, zFar = 7.0, fov = 45.0;
+    m_projection.setToIdentity();
+    m_projection.perspective(fov, aspect, zNear, zFar);
+}
+
+void GLEngineWidget::initTextures()
+{
+    m_texture = new QOpenGLTexture(QImage(":/texture.png").mirrored());
+    m_texture->setMinificationFilter(QOpenGLTexture::Nearest);
+    m_texture->setMagnificationFilter(QOpenGLTexture::Linear);
+    m_texture->setWrapMode(QOpenGLTexture::Repeat);
+    m_texture->setMaximumAnisotropy(16.0f);
 }

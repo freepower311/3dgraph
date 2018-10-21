@@ -12,7 +12,3 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
-
-void  MainWindow::updateScene(){
-    ui->GLScene->update();
-}

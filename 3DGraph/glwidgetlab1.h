@@ -1,8 +1,8 @@
 #ifndef GLWIDGETLAB1_H
 #define GLWIDGETLAB1_H
-#include "glwidget.h"
+#include "glenginewidget.h"
 
-class GLWidgetLab1 : public GLWidget
+class GLWidgetLab1 : public GLEngineWidget
 {
 public:
     explicit GLWidgetLab1(QWidget* parent);
