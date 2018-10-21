@@ -9,7 +9,7 @@ GLWidgetLab::GLWidgetLab(QWidget* parent):GLEngineWidget(parent)
 void GLWidgetLab::initializeGL()
 {
     initializeOpenGLFunctions();
-    //Генерация вершин и их цвета
+    //Генерация вершин и их координат на текстуре
     const GLfloat zPos = -5.0;
     m_vertexArray = {
         -0.5f, -0.5f, zPos,
@@ -29,13 +29,18 @@ void GLWidgetLab::initializeGL()
 
         -0.5f, -0.5f, zPos,
         -0.5f, 0.5f, zPos,
-        0.5f, 0.5f, zPos+1.0f,
-        0.5f, -0.5f, zPos+1.0f,
+        0.0f, 0.5f, zPos+0.5f,
+        0.0f, -0.5f, zPos+0.5f,
 
         -0.5f, -0.5f, zPos+1.0f,
         -0.5f, 0.5f, zPos+1.0f,
         0.5f, 0.5f, zPos,
-        0.5f, -0.5f, zPos
+        0.5f, -0.5f, zPos,
+
+        0.0f, -0.5f, zPos+0.5f,
+        0.0f, 0.5f, zPos+0.5f,
+        0.5f, 0.5f, zPos+1.0f,
+        0.5f, -0.5f, zPos+1.0f
     };
     m_textureCoordinates = {
         0.0f, 0.0f,
@@ -55,11 +60,16 @@ void GLWidgetLab::initializeGL()
 
         0.5f, 0.0f,
         0.5f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 0.0f,
+        0.75f, 1.0f,
+        0.75f, 0.0f,
 
         0.5f, 0.0f,
         0.5f, 1.0f,
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+
+        0.75f, 0.0f,
+        0.75f, 1.0f,
         1.0f, 1.0f,
         1.0f, 0.0f
     };
@@ -81,17 +91,9 @@ void GLWidgetLab::initializeGL()
 
     glBindBuffer(GL_ARRAY_BUFFER,0);
 
-    GLint tex = glGetUniformLocation(m_shaderProgram, "texture");
-    glUniform1f(tex, 0);
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
 }
 
 void GLWidgetLab::paintGL()
@@ -105,14 +107,14 @@ void GLWidgetLab::paintGL()
 
     m_texture->bind();
     QMatrix4x4 matrix = m_projection;
-    m_eye = {m_cameraX,m_cameraY,m_cameraZ};
-    m_center = {m_cameraX-sin(m_cameraAngleX/180.0f*PI),
-              m_cameraY+(tan(m_cameraAngleY/180.0f*PI)),
-              m_cameraZ-cos(m_cameraAngleX/180.0f*PI)};
+    m_eye = {m_cameraX, m_cameraY, m_cameraZ};
+    m_center = {m_cameraX-(float)sin(m_cameraAngleX/180.0f*PI),
+              m_cameraY+((float)tan(m_cameraAngleY/180.0f*PI)),
+              m_cameraZ-(float)cos(m_cameraAngleX/180.0f*PI)};
     matrix.lookAt(m_eye,m_center,m_up);
     glUniformMatrix4fv(m_matrixAttr, 1 , 0, matrix.data());
 
-    glDrawArrays(GL_QUADS, 0, 20);
+    glDrawArrays(GL_QUADS, 0, 24);
 
     glDisableVertexAttribArray(m_texCoordAttr);
     glDisableVertexAttribArray(m_positionAttr);

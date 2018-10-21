@@ -92,6 +92,8 @@ void GLEngineWidget::loadShaders()
     m_positionAttr = glGetAttribLocation(m_shaderProgram, "positionAttr");
     m_texCoordAttr = glGetAttribLocation(m_shaderProgram, "texCoordIn");
     m_matrixAttr = glGetUniformLocation(m_shaderProgram, "mvp_matrix");
+    GLint tex = glGetUniformLocation(m_shaderProgram, "texture");
+    glUniform1f(tex, 0);
 }
 
 void GLEngineWidget::mousePressEvent(QMouseEvent *e)
@@ -162,13 +164,9 @@ void GLEngineWidget::resizeGL(int w, int h)
 
 void GLEngineWidget::initTextures()
 {
-    // Load cube.png image
     m_texture = new QOpenGLTexture(QImage(":/texture.png").mirrored());
-    // Set nearest filtering mode for texture minification
     m_texture->setMinificationFilter(QOpenGLTexture::Nearest);
-    // Set bilinear filtering mode for texture magnification
     m_texture->setMagnificationFilter(QOpenGLTexture::Linear);
-    // Wrap texture coordinates by repeating
-    // f.ex. texture coordinate (1.1, 1.2) is same as (0.1, 0.2)
     m_texture->setWrapMode(QOpenGLTexture::Repeat);
+    m_texture->setMaximumAnisotropy(16.0f);
 }
