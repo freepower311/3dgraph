@@ -11,11 +11,13 @@
 #include <QOpenGLTexture>
 #include <QMouseEvent>
 #include <QKeyEvent>
+#include <QTimer>
 
 const float PI = 3.141592653;
 
 class GLEngineWidget : public QOpenGLWidget, public QOpenGLFunctions
 {
+    Q_OBJECT
 public:
     explicit GLEngineWidget(QWidget* parent);
 
@@ -28,7 +30,9 @@ protected:
     void resizeGL(int w, int h);
     void initTextures();
     void resetCamera();
-
+protected slots:
+    void processCameraMovements();
+protected:
     GLuint m_shaderProgram;
     GLuint m_positionAttr;
     GLuint m_texCoordAttr;
@@ -43,11 +47,15 @@ protected:
     QVector3D m_eye;
     QVector3D m_center;
     QVector3D m_up;
+    QTimer m_timer;
     float m_cameraX;
     float m_cameraY;
     float m_cameraZ;
     float m_cameraAngleX;
     float m_cameraAngleY;
+    float m_cameraXSpeed;
+    float m_cameraYSpeed;
+    float m_cameraZSpeed;
 };
 
 #endif // GLWIDGET_H

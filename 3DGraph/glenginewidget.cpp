@@ -6,6 +6,9 @@ GLEngineWidget::GLEngineWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
     setFocusPolicy(Qt::StrongFocus);
     resetCamera();
+    m_timer.setInterval(16);  //62.5 fps
+    m_timer.start();
+    connect(&m_timer, SIGNAL(timeout()), this, SLOT(processCameraMovements()));
 }
 
 void GLEngineWidget::resetCamera(){
@@ -13,6 +16,9 @@ void GLEngineWidget::resetCamera(){
     m_cameraX = 0;
     m_cameraY = 0;
     m_cameraZ = 0;
+    m_cameraXSpeed = 0;
+    m_cameraYSpeed = 0;
+    m_cameraZSpeed = 0;
     m_cameraAngleX = 0;
     m_cameraAngleY = 0;
 }
@@ -122,30 +128,36 @@ void GLEngineWidget::mouseReleaseEvent(QMouseEvent *e)
 
 void GLEngineWidget::keyPressEvent(QKeyEvent *e)
 {
-    const double cameraSpeed = 0.1;
+    static const double cameraSpeedCoefficient = 0.1;
     switch (e->key()) {
     case Qt::Key_F1:
         resetCamera();
         break;
     case 1060: //ф
     case Qt::Key_A:
-        m_cameraX += (float)sin(( m_cameraAngleX - 90)/180*PI) * cameraSpeed;
-        m_cameraZ += (float)cos(( m_cameraAngleX - 90)/180*PI) * cameraSpeed;
+        m_cameraXSpeed = (float)sin(( m_cameraAngleX - 90)/180*PI) * cameraSpeedCoefficient;
+        m_cameraZSpeed = (float)cos(( m_cameraAngleX - 90)/180*PI) * cameraSpeedCoefficient;
         break;
     case 1062: //ц
     case Qt::Key_W:
-        m_cameraX -= (float)sin(m_cameraAngleX/180*PI) * cameraSpeed;
-        m_cameraZ -= (float)cos(m_cameraAngleX/180*PI) * cameraSpeed;
+        m_cameraXSpeed = -(float)sin(m_cameraAngleX/180*PI) * cameraSpeedCoefficient;
+        m_cameraZSpeed = -(float)cos(m_cameraAngleX/180*PI) * cameraSpeedCoefficient;
         break;
     case 1067: //ы
     case Qt::Key_S:
-        m_cameraX += (float)sin(m_cameraAngleX/180*PI) * cameraSpeed;
-        m_cameraZ += (float)cos(m_cameraAngleX/180*PI) * cameraSpeed;
+        m_cameraXSpeed = (float)sin(m_cameraAngleX/180*PI) * cameraSpeedCoefficient;
+        m_cameraZSpeed = (float)cos(m_cameraAngleX/180*PI) * cameraSpeedCoefficient;
         break;
     case 1042: //в
     case Qt::Key_D:
-        m_cameraX += (float)sin(( m_cameraAngleX + 90)/180*PI) * cameraSpeed;
-        m_cameraZ += (float)cos(( m_cameraAngleX + 90)/180*PI) * cameraSpeed;
+        m_cameraXSpeed = (float)sin(( m_cameraAngleX + 90)/180*PI) * cameraSpeedCoefficient;
+        m_cameraZSpeed = (float)cos(( m_cameraAngleX + 90)/180*PI) * cameraSpeedCoefficient;
+        break;
+    case Qt::Key_Z:
+        m_cameraYSpeed = -cameraSpeedCoefficient;
+        break;
+    case Qt::Key_X:
+        m_cameraYSpeed = cameraSpeedCoefficient;
         break;
     default:
         break;
@@ -169,4 +181,16 @@ void GLEngineWidget::initTextures()
     m_texture->setMagnificationFilter(QOpenGLTexture::Linear);
     m_texture->setWrapMode(QOpenGLTexture::Repeat);
     m_texture->setMaximumAnisotropy(16.0f);
+}
+
+void GLEngineWidget::processCameraMovements()
+{
+    static const float decelerationCoefficient = 0.9;
+    m_cameraX += m_cameraXSpeed;
+    m_cameraZ += m_cameraZSpeed;
+    m_cameraY += m_cameraYSpeed;
+    m_cameraXSpeed *= decelerationCoefficient;
+    m_cameraZSpeed *= decelerationCoefficient;
+    m_cameraYSpeed *= decelerationCoefficient;
+    update();
 }
