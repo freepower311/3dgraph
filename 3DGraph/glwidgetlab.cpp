@@ -65,13 +65,50 @@ void GLWidgetLab::initializeGL()
 
         0.5f, 0.0f,
         0.5f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 0.0f,
+        0.99f, 1.0f,
+        0.99f, 0.0f,
 
         0.75f, 0.0f,
         0.75f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 0.0f
+        0.99f, 1.0f,
+        0.99f, 0.0f
+    };
+
+    m_normalsArray = {
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
     };
 
     loadShaders();
@@ -79,6 +116,7 @@ void GLWidgetLab::initializeGL()
 
     GLuint vertexBuf;
     GLuint texCoordBuf;
+    GLuint normalsBuf;
     glGenBuffers(1, &vertexBuf);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuf);
     glBufferData(GL_ARRAY_BUFFER, m_vertexArray.count() * sizeof(GLfloat), m_vertexArray.data(), GL_STATIC_DRAW);
@@ -88,6 +126,11 @@ void GLWidgetLab::initializeGL()
     glBindBuffer(GL_ARRAY_BUFFER, texCoordBuf);
     glBufferData(GL_ARRAY_BUFFER, m_textureCoordinates.count() * sizeof(GLfloat), m_textureCoordinates.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(m_texCoordAttr, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glGenBuffers( 1, &normalsBuf);
+    glBindBuffer(GL_ARRAY_BUFFER, normalsBuf);
+    glBufferData(GL_ARRAY_BUFFER, m_normalsArray.count() * sizeof(GLfloat), m_normalsArray.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(m_normalsAttr, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER,0);
 
@@ -101,22 +144,24 @@ void GLWidgetLab::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.2,0.2,0.2,1.0);
 
-    glUseProgram(m_shaderProgram);
+    m_qShaderProgram->bind();
     glEnableVertexAttribArray(m_positionAttr);
     glEnableVertexAttribArray(m_texCoordAttr);
+    glEnableVertexAttribArray(m_normalsAttr);
 
     m_texture->bind();
     QMatrix4x4 matrix = m_projection;
     m_eye = {m_cameraX, m_cameraY, m_cameraZ};
-    m_center = {m_cameraX-(float)sin(m_cameraAngleX/180.0f*PI),
-              m_cameraY+((float)tan(m_cameraAngleY/180.0f*PI)),
-              m_cameraZ-(float)cos(m_cameraAngleX/180.0f*PI)};
+    m_center = {m_cameraX - (float)sin(m_cameraAngleX / 180.0f * PI),
+                m_cameraY + (float)tan(m_cameraAngleY / 180.0f * PI),
+                m_cameraZ - (float)cos(m_cameraAngleX / 180.0f * PI)};
     matrix.lookAt(m_eye,m_center,m_up);
     glUniformMatrix4fv(m_matrixAttr, 1 , 0, matrix.data());
 
     glDrawArrays(GL_QUADS, 0, 24);
 
+    glDisableVertexAttribArray(m_normalsAttr);
     glDisableVertexAttribArray(m_texCoordAttr);
     glDisableVertexAttribArray(m_positionAttr);
-    glUseProgram(0);
+    m_qShaderProgram->release();
 }

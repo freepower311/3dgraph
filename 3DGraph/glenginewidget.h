@@ -12,6 +12,7 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QTimer>
+#include <QOpenGLShaderProgram>
 
 const float PI = 3.141592653;
 
@@ -33,12 +34,14 @@ protected:
 protected slots:
     void processCameraMovements();
 protected:
-    GLuint m_shaderProgram;
+    QOpenGLShaderProgram *m_qShaderProgram;
     GLuint m_positionAttr;
     GLuint m_texCoordAttr;
     GLuint m_matrixAttr;
+    GLuint m_normalsAttr;
     QVector<GLfloat> m_vertexArray;
     QVector<GLfloat> m_textureCoordinates;
+    QVector<GLfloat> m_normalsArray;
     QString m_vshaderPath;
     QString m_fshaderPath;
     QOpenGLTexture *m_texture;
