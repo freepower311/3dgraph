@@ -9,9 +9,9 @@ GLWidgetLab::GLWidgetLab(QWidget* parent):GLEngineWidget(parent)
 void GLWidgetLab::initializeGL()
 {
     initializeOpenGLFunctions();
-    lightPosition = {0.0,0.0,0.0,1.0};
+    m_lightPosition = {0.0,0.0,0.0,1.0};
 
-    loader.load(":/cube.obj");
+    m_objLoader.load(":/cube.obj");
     loadShaders();
     initTextures();
 
@@ -21,17 +21,17 @@ void GLWidgetLab::initializeGL()
     GLuint normalsBuf;
     glGenBuffers(1, &vertexBuf);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuf);
-    glBufferData(GL_ARRAY_BUFFER, loader.getVertices()->count() * sizeof(float), loader.getVertices()->data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_objLoader.getVertices()->count() * sizeof(float), m_objLoader.getVertices()->data(), GL_STATIC_DRAW);
     glVertexAttribPointer(m_positionAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glGenBuffers( 1, &texCoordBuf);
     glBindBuffer(GL_ARRAY_BUFFER, texCoordBuf);
-    glBufferData(GL_ARRAY_BUFFER, loader.getUvs()->count() * sizeof(float), loader.getUvs()->data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_objLoader.getUvs()->count() * sizeof(float), m_objLoader.getUvs()->data(), GL_STATIC_DRAW);
     glVertexAttribPointer(m_texCoordAttr, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
     glGenBuffers( 1, &normalsBuf);
     glBindBuffer(GL_ARRAY_BUFFER, normalsBuf);
-    glBufferData(GL_ARRAY_BUFFER, loader.getNormals()->count() * sizeof(float), loader.getNormals()->data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_objLoader.getNormals()->count() * sizeof(float), m_objLoader.getNormals()->data(), GL_STATIC_DRAW);
     glVertexAttribPointer(m_normalsAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER,0);
@@ -67,13 +67,13 @@ void GLWidgetLab::paintGL()
     glUniformMatrix4fv(m_viewMatrixAttr, 1 , 0, (viewMatrix*modelMatrix).data());
     glUniformMatrix4fv(m_normalMatrixAttr, 1 , 0, (viewMatrix*modelMatrix).transposed().inverted().data());
     //move light for debugging
-    lightPosition[0] += 0.02;
-    if (lightPosition[0] > 3.0)
-        lightPosition[0] = -3.0;
-    QVector4D viewSpaceLightPosition  = viewMatrix*lightPosition;
+    m_lightPosition[0] += 0.02;
+    if (m_lightPosition[0] > 3.0)
+        m_lightPosition[0] = -3.0;
+    QVector4D viewSpaceLightPosition  = viewMatrix*m_lightPosition;
     glUniform3f(m_viewSpaceLightPosition, viewSpaceLightPosition.x(), viewSpaceLightPosition.y(), viewSpaceLightPosition.z());
 
-    glDrawArrays(GL_TRIANGLES, 0, loader.verticesCount());
+    glDrawArrays(GL_TRIANGLES, 0, m_objLoader.verticesCount());
 
     glDisableVertexAttribArray(m_normalsAttr);
     glDisableVertexAttribArray(m_texCoordAttr);

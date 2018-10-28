@@ -36,10 +36,10 @@ void OBJLoader::load(const QString &path)
                 {
                     for(int i = 0;i<3;i++)
                     {
-                        QStringList indexis = list[i+1].split("/");
-                        m_vertexIndices.append(indexis[0].toInt());
-                        m_uvIndices.append(indexis[1].toInt());
-                        m_normalIndices.append(indexis[2].toInt());
+                        QStringList indexes = list[i+1].split("/");
+                        m_vertexIndices.append(indexes[0].toInt());
+                        m_uvIndices.append(indexes[1].toInt());
+                        m_normalIndices.append(indexes[2].toInt());
                     }
                 }
             }

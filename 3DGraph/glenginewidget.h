@@ -64,8 +64,8 @@ protected:
     float m_cameraXSpeed;
     float m_cameraYSpeed;
     float m_cameraZSpeed;
-    QVector4D lightPosition;
-    OBJLoader loader;
+    QVector4D m_lightPosition;
+    OBJLoader m_objLoader;
 };
 
 #endif // GLWIDGET_H
