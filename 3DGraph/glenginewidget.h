@@ -14,6 +14,7 @@
 #include <QKeyEvent>
 #include <QTimer>
 #include <QOpenGLShaderProgram>
+#include "objloader.h"
 
 const float PI = 3.141592653;
 
@@ -64,6 +65,7 @@ protected:
     float m_cameraYSpeed;
     float m_cameraZSpeed;
     QVector4D lightPosition;
+    OBJLoader loader;
 };
 
 #endif // GLWIDGET_H

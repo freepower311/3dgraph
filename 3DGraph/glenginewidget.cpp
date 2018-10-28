@@ -1,6 +1,6 @@
 #include "glenginewidget.h"
-#include <QFile>
 #include <QApplication>
+
 
 GLEngineWidget::GLEngineWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
@@ -21,21 +21,6 @@ void GLEngineWidget::resetCamera(){
     m_cameraZSpeed = 0;
     m_cameraAngleX = 0;
     m_cameraAngleY = 0;
-}
-
-std::string readFromFile(QString &path)
-{
-    QFile file(path);
-    QString textFromFile;
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
-    if(file.isOpen())
-    {
-        while(!file.atEnd())
-        {
-            textFromFile += file.readLine().data();
-        }
-    }
-    return textFromFile.toStdString();
 }
 
 void GLEngineWidget::loadShaders()
@@ -81,6 +66,7 @@ void GLEngineWidget::mouseReleaseEvent(QMouseEvent *e)
 
 void GLEngineWidget::keyPressEvent(QKeyEvent *e)
 {
+    //todo: убрать в конфиг?
     static const double cameraSpeedCoefficient = 0.1;
     switch (e->key()) {
     case Qt::Key_F1:
