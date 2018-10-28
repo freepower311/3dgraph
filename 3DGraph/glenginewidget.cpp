@@ -44,17 +44,16 @@ void GLEngineWidget::loadShaders()
     m_qShaderProgram = new QOpenGLShaderProgram(this);
     m_qShaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, m_vshaderPath);
     m_qShaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, m_fshaderPath);
-    if (!m_qShaderProgram->link())
-    {
-        qWarning("Error: unable to link a shader program");
-        return;
-    }
+    m_qShaderProgram->link();
     m_positionAttr = m_qShaderProgram->attributeLocation("positionAttr");
     m_texCoordAttr = m_qShaderProgram->attributeLocation("texCoordIn");
     m_matrixAttr =  m_qShaderProgram->uniformLocation("mvpMatrix");
     m_normalsAttr = m_qShaderProgram->attributeLocation("normalsIn");
+    m_normalMatrixAttr = m_qShaderProgram->uniformLocation("normalMatrix");
+    m_viewMatrixAttr = m_qShaderProgram->uniformLocation("modelViewMatrix");
     GLint tex = m_qShaderProgram->uniformLocation("texture");
     glUniform1f(tex, 0);
+    m_viewSpaceLightPosition = m_qShaderProgram->uniformLocation("viewSpaceLightPosition");
 }
 
 void GLEngineWidget::mousePressEvent(QMouseEvent *e)
@@ -107,9 +106,11 @@ void GLEngineWidget::keyPressEvent(QKeyEvent *e)
         m_cameraXSpeed = (float)sin(( m_cameraAngleX + 90)/180*PI) * cameraSpeedCoefficient;
         m_cameraZSpeed = (float)cos(( m_cameraAngleX + 90)/180*PI) * cameraSpeedCoefficient;
         break;
+    case 1071: //я
     case Qt::Key_Z:
         m_cameraYSpeed = -cameraSpeedCoefficient;
         break;
+    case 1063: //ч
     case Qt::Key_X:
         m_cameraYSpeed = cameraSpeedCoefficient;
         break;

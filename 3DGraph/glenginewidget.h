@@ -8,6 +8,7 @@
 #include <QMatrix4x4>
 #include <QVector2D>
 #include <QVector3D>
+#include <QVector4D>
 #include <QOpenGLTexture>
 #include <QMouseEvent>
 #include <QKeyEvent>
@@ -39,6 +40,9 @@ protected:
     GLuint m_texCoordAttr;
     GLuint m_matrixAttr;
     GLuint m_normalsAttr;
+    GLuint m_normalMatrixAttr;
+    GLuint m_viewMatrixAttr;
+    GLuint m_viewSpaceLightPosition;
     QVector<GLfloat> m_vertexArray;
     QVector<GLfloat> m_textureCoordinates;
     QVector<GLfloat> m_normalsArray;
@@ -59,6 +63,7 @@ protected:
     float m_cameraXSpeed;
     float m_cameraYSpeed;
     float m_cameraZSpeed;
+    QVector4D lightPosition;
 };
 
 #endif // GLWIDGET_H
