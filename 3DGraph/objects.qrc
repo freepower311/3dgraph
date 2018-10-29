@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>cube.obj</file>
+        <file>simple_scene.obj</file>
     </qresource>
 </RCC>

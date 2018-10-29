@@ -41,6 +41,6 @@ FORMS += \
         mainwindow.ui
 
 RESOURCES += \
-    shader.qrc \
     textures.qrc \
-    objects.qrc
+    objects.qrc \
+    shaders.qrc

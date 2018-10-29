@@ -11,6 +11,8 @@ public:
     explicit GLWidgetLab(QWidget* parent);
     void initializeGL();
     void paintGL();
+protected:
+    virtual void processCoordinates();
 };
 
 #endif // GLWIDGETLAB2_H

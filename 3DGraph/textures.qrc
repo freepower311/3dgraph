@@ -1,5 +1,12 @@
 <RCC>
     <qresource prefix="/">
         <file>texture.png</file>
+        <file>metal.png</file>
+        <file>cube0.png</file>
+        <file>cube1.png</file>
+        <file>cube2.png</file>
+        <file>cube3.png</file>
+        <file>cube4.png</file>
+        <file>cube5.png</file>
     </qresource>
 </RCC>

@@ -9,9 +9,9 @@ GLWidgetLab::GLWidgetLab(QWidget* parent):GLEngineWidget(parent)
 void GLWidgetLab::initializeGL()
 {
     initializeOpenGLFunctions();
-    m_lightPosition = {0.0,0.0,0.0,1.0};
+    m_lightPosition = {0.0,1.0,0.0,1.0};
 
-    m_objLoader.load(":/cube.obj");
+    m_objLoader.load(":/simple_scene.obj");
     loadShaders();
     initTextures();
 
@@ -44,14 +44,17 @@ void GLWidgetLab::initializeGL()
 void GLWidgetLab::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(0.2,0.2,0.2,1.0);
+    glClearColor(0.4,0.4,0.4,1.0);
 
     m_qShaderProgram->bind();
     glEnableVertexAttribArray(m_positionAttr);
     glEnableVertexAttribArray(m_texCoordAttr);
     glEnableVertexAttribArray(m_normalsAttr);
 
-    m_texture->bind();
+    m_texture->bind(0);
+    m_cubeTexture->bind(1);
+    m_qShaderProgram->setUniformValue("texture", 0);
+    m_qShaderProgram->setUniformValue("environmentMap", 1);
     QMatrix4x4 viewMatrix;
     m_eye = {m_cameraX, m_cameraY, m_cameraZ};
     m_center = {m_cameraX - (float)sin(m_cameraAngleX / 180.0f * PI),
@@ -59,17 +62,15 @@ void GLWidgetLab::paintGL()
                 m_cameraZ - (float)cos(m_cameraAngleX / 180.0f * PI)};
     viewMatrix.lookAt(m_eye,m_center,m_up);
     QMatrix4x4 modelMatrix;
-    modelMatrix.translate(0.0,0.0,-6.0);
-    modelMatrix.rotate(30.0,1.0,1.0,0.0);
+    modelMatrix.translate(0.0,-1.0,-6.0);
+    modelMatrix.rotate(-90.0,0.0,1.0,0.0);
 
 
     glUniformMatrix4fv(m_matrixAttr, 1 , 0, (m_projection*viewMatrix*modelMatrix).data());
     glUniformMatrix4fv(m_viewMatrixAttr, 1 , 0, (viewMatrix*modelMatrix).data());
     glUniformMatrix4fv(m_normalMatrixAttr, 1 , 0, (viewMatrix*modelMatrix).transposed().inverted().data());
-    //move light for debugging
-    m_lightPosition[0] += 0.02;
-    if (m_lightPosition[0] > 3.0)
-        m_lightPosition[0] = -3.0;
+    glUniformMatrix4fv(m_inverseViewNormalMatrixAttr, 1 , 0, viewMatrix.transposed().data());
+
     QVector4D viewSpaceLightPosition  = viewMatrix*m_lightPosition;
     glUniform3f(m_viewSpaceLightPosition, viewSpaceLightPosition.x(), viewSpaceLightPosition.y(), viewSpaceLightPosition.z());
 
@@ -79,4 +80,14 @@ void GLWidgetLab::paintGL()
     glDisableVertexAttribArray(m_texCoordAttr);
     glDisableVertexAttribArray(m_positionAttr);
     m_qShaderProgram->release();
+}
+
+void GLWidgetLab::processCoordinates()
+{
+    GLEngineWidget::processCoordinates();
+    //move light for debugging
+    static float moveStep = 0.02;
+    m_lightPosition[0] += moveStep;
+    if (m_lightPosition[0] > 3.0 || m_lightPosition[0] < -3.0)
+        moveStep *= -1;
 }

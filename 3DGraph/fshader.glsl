@@ -10,8 +10,8 @@ uniform vec3 viewSpaceLightPosition;
 uniform vec3 scene_ambient_light = vec3(0.05, 0.05, 0.05);
 uniform vec3 scene_light = vec3(0.6, 0.6, 0.6);
 
-
-out vec4 fragmentColor;
+uniform samplerCube environmentMap;
+uniform mat4 inverseViewNormalMatrix;
 
 uniform float material_shininess = 25.0;
 uniform vec3 material_diffuse_color = vec3(1.0);
@@ -52,11 +52,18 @@ void main()
     vec3 specular = material_specular_color;
     float normalizationFactor = (material_shininess + 2.0) / 8.0;
 
+    vec4 reflectionVector = inverseViewNormalMatrix * vec4(reflect(directionFromEye, normal), 0.0);
+    vec3 envMapSample = 0.2*textureCube(environmentMap, reflectionVector.xyz).rgb;
+
+
     vec3 ambient = material_diffuse_color * sampleDiffuseTexture();
     vec3 diffuse = sampleDiffuseTexture() * material_diffuse_color;
     vec3 emissive = sampleDiffuseTexture() * material_emissive_color;
     vec3 shading = calculateAmbient(scene_ambient_light,ambient)
             + calculateDiffuse(scene_light, diffuse, normal, directionToLight)
-            + calculateSpecular(scene_light, specular, material_shininess,normal, directionToLight, directionFromEye);
+            + calculateSpecular(scene_light, specular, material_shininess,normal, directionToLight, directionFromEye)
+            + emissive
+            + envMapSample*specular
+            + calculateFresnel(specular, normal, directionFromEye)*0.2;
     fragColor = vec4(shading, 1.0);
 }
