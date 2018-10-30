@@ -9,85 +9,30 @@ GLWidgetLab::GLWidgetLab(QWidget* parent):GLEngineWidget(parent)
 void GLWidgetLab::initializeGL()
 {
     initializeOpenGLFunctions();
-    //Генерация вершин и их координат на текстуре
-    const GLfloat zPos = -5.0;
-    m_vertexArray = {
-        -0.5f, -0.5f, zPos,
-        -0.5f, -0.5f, zPos+1.0f,
-        0.5f, -0.5f, zPos+1.0f,
-        0.5f, -0.5f, zPos,
+    m_lightPosition = {0.0,1.0,0.0,1.0};
 
-        -0.5f, -0.5f, zPos,
-        -0.5f, 0.5f, zPos,
-        0.5f, 0.5f, zPos,
-        0.5f, -0.5f, zPos,
-
-        -0.5f, -0.5f, zPos,
-        -0.5f, -0.5f, zPos+1.0f,
-        -0.5f, 0.5f, zPos+1.0f,
-        -0.5f, 0.5f, zPos,
-
-        -0.5f, -0.5f, zPos,
-        -0.5f, 0.5f, zPos,
-        0.0f, 0.5f, zPos+0.5f,
-        0.0f, -0.5f, zPos+0.5f,
-
-        -0.5f, -0.5f, zPos+1.0f,
-        -0.5f, 0.5f, zPos+1.0f,
-        0.5f, 0.5f, zPos,
-        0.5f, -0.5f, zPos,
-
-        0.0f, -0.5f, zPos+0.5f,
-        0.0f, 0.5f, zPos+0.5f,
-        0.5f, 0.5f, zPos+1.0f,
-        0.5f, -0.5f, zPos+1.0f
-    };
-    m_textureCoordinates = {
-        0.0f, 0.0f,
-        0.0f, 1.0f,
-        0.5f, 1.0f,
-        0.5f, 0.0f,
-
-        0.0f, 0.0f,
-        0.0f, 1.0f,
-        0.5f, 1.0f,
-        0.5f, 0.0f,
-
-        0.0f, 0.0f,
-        0.0f, 1.0f,
-        0.5f, 1.0f,
-        0.5f, 0.0f,
-
-        0.5f, 0.0f,
-        0.5f, 1.0f,
-        0.75f, 1.0f,
-        0.75f, 0.0f,
-
-        0.5f, 0.0f,
-        0.5f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 0.0f,
-
-        0.75f, 0.0f,
-        0.75f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 0.0f
-    };
-
+    m_objLoader.load(":/simple_scene.obj");
     loadShaders();
     initTextures();
 
+    //todo: убрать в engine
     GLuint vertexBuf;
     GLuint texCoordBuf;
+    GLuint normalsBuf;
     glGenBuffers(1, &vertexBuf);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuf);
-    glBufferData(GL_ARRAY_BUFFER, m_vertexArray.count() * sizeof(GLfloat), m_vertexArray.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_objLoader.getVertices()->count() * sizeof(float), m_objLoader.getVertices()->data(), GL_STATIC_DRAW);
     glVertexAttribPointer(m_positionAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glGenBuffers( 1, &texCoordBuf);
     glBindBuffer(GL_ARRAY_BUFFER, texCoordBuf);
-    glBufferData(GL_ARRAY_BUFFER, m_textureCoordinates.count() * sizeof(GLfloat), m_textureCoordinates.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_objLoader.getUvs()->count() * sizeof(float), m_objLoader.getUvs()->data(), GL_STATIC_DRAW);
     glVertexAttribPointer(m_texCoordAttr, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glGenBuffers( 1, &normalsBuf);
+    glBindBuffer(GL_ARRAY_BUFFER, normalsBuf);
+    glBufferData(GL_ARRAY_BUFFER, m_objLoader.getNormals()->count() * sizeof(float), m_objLoader.getNormals()->data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(m_normalsAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER,0);
 
@@ -99,24 +44,50 @@ void GLWidgetLab::initializeGL()
 void GLWidgetLab::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(0.2,0.2,0.2,1.0);
+    glClearColor(0.4,0.4,0.4,1.0);
 
-    glUseProgram(m_shaderProgram);
+    m_qShaderProgram->bind();
     glEnableVertexAttribArray(m_positionAttr);
     glEnableVertexAttribArray(m_texCoordAttr);
+    glEnableVertexAttribArray(m_normalsAttr);
 
-    m_texture->bind();
-    QMatrix4x4 matrix = m_projection;
+    m_texture->bind(0);
+    m_cubeTexture->bind(1);
+    m_qShaderProgram->setUniformValue("texture", 0);
+    m_qShaderProgram->setUniformValue("environmentMap", 1);
+    QMatrix4x4 viewMatrix;
     m_eye = {m_cameraX, m_cameraY, m_cameraZ};
-    m_center = {m_cameraX-(float)sin(m_cameraAngleX/180.0f*PI),
-              m_cameraY+((float)tan(m_cameraAngleY/180.0f*PI)),
-              m_cameraZ-(float)cos(m_cameraAngleX/180.0f*PI)};
-    matrix.lookAt(m_eye,m_center,m_up);
-    glUniformMatrix4fv(m_matrixAttr, 1 , 0, matrix.data());
+    m_center = {m_cameraX - (float)sin(m_cameraAngleX / 180.0f * PI),
+                m_cameraY + (float)tan(m_cameraAngleY / 180.0f * PI),
+                m_cameraZ - (float)cos(m_cameraAngleX / 180.0f * PI)};
+    viewMatrix.lookAt(m_eye,m_center,m_up);
+    QMatrix4x4 modelMatrix;
+    modelMatrix.translate(0.0,-1.0,-6.0);
+    modelMatrix.rotate(-90.0,0.0,1.0,0.0);
 
-    glDrawArrays(GL_QUADS, 0, 24);
 
+    glUniformMatrix4fv(m_matrixAttr, 1 , 0, (m_projection*viewMatrix*modelMatrix).data());
+    glUniformMatrix4fv(m_viewMatrixAttr, 1 , 0, (viewMatrix*modelMatrix).data());
+    glUniformMatrix4fv(m_normalMatrixAttr, 1 , 0, (viewMatrix*modelMatrix).transposed().inverted().data());
+    glUniformMatrix4fv(m_inverseViewNormalMatrixAttr, 1 , 0, viewMatrix.transposed().data());
+
+    QVector4D viewSpaceLightPosition  = viewMatrix*m_lightPosition;
+    glUniform3f(m_viewSpaceLightPosition, viewSpaceLightPosition.x(), viewSpaceLightPosition.y(), viewSpaceLightPosition.z());
+
+    glDrawArrays(GL_TRIANGLES, 0, m_objLoader.verticesCount());
+
+    glDisableVertexAttribArray(m_normalsAttr);
     glDisableVertexAttribArray(m_texCoordAttr);
     glDisableVertexAttribArray(m_positionAttr);
-    glUseProgram(0);
+    m_qShaderProgram->release();
+}
+
+void GLWidgetLab::processCoordinates()
+{
+    GLEngineWidget::processCoordinates();
+    //move light for debugging
+    static float moveStep = 0.02;
+    m_lightPosition[0] += moveStep;
+    if (m_lightPosition[0] > 3.0 || m_lightPosition[0] < -3.0)
+        moveStep *= -1;
 }

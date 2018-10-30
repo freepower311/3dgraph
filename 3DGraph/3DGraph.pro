@@ -28,16 +28,19 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     glenginewidget.cpp \
-    glwidgetlab.cpp
+    glwidgetlab.cpp \
+    objloader.cpp
 
 HEADERS += \
         mainwindow.h \
     glenginewidget.h \
-    glwidgetlab.h
+    glwidgetlab.h \
+    objloader.h
 
 FORMS += \
         mainwindow.ui
 
 RESOURCES += \
-    shader.qrc \
-    textures.qrc
+    textures.qrc \
+    objects.qrc \
+    shaders.qrc
