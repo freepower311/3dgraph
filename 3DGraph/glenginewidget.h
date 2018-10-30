@@ -14,6 +14,7 @@
 #include <QKeyEvent>
 #include <QTimer>
 #include <QOpenGLShaderProgram>
+#include <math.h>
 #include "objloader.h"
 
 const float PI = 3.141592653;
@@ -43,9 +44,6 @@ protected:
     GLuint m_normalMatrixAttr;
     GLuint m_viewMatrixAttr;
     GLuint m_viewSpaceLightPosition;
-    QVector<GLfloat> m_vertexArray;
-    QVector<GLfloat> m_textureCoordinates;
-    QVector<GLfloat> m_normalsArray;
     QString m_vshaderPath;
     QString m_fshaderPath;
     QOpenGLTexture *m_texture;

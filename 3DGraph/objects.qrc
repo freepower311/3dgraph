@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>cube.obj</file>
-        <file>simple_scene.obj</file>
+    	<file alias="cube.obj">resources/cube.obj</file>
+    	<file alias="simple_scene.obj">resources/simple_scene.obj</file>
     </qresource>
 </RCC>

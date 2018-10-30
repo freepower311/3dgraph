@@ -57,6 +57,10 @@ void GLEngineWidget::mouseMoveEvent(QMouseEvent *e)
     static const double rotationSens = 0.2;
     m_cameraAngleX += diff.x()*rotationSens;
     m_cameraAngleY += diff.y()*rotationSens;
+    if (m_cameraAngleY >= 90.0)
+        m_cameraAngleY = 89.9;
+    if (m_cameraAngleY <= -90.0)
+        m_cameraAngleY = -89.9;
     QOpenGLWidget::mouseMoveEvent(e);
 }
 
@@ -125,12 +129,12 @@ void GLEngineWidget::initTextures()
     m_texture->setWrapMode(QOpenGLTexture::Repeat);
     m_texture->setMaximumAnisotropy(16.0f);
     m_cubeTexture = new QOpenGLTexture(QOpenGLTexture::TargetCubeMap);
-    const QImage posx = QImage(":/cube0.png").mirrored().convertToFormat(QImage::Format_RGBA8888);
-    const QImage posy = QImage(":/cube1.png").mirrored().convertToFormat(QImage::Format_RGBA8888);
-    const QImage posz = QImage(":/cube2.png").mirrored().convertToFormat(QImage::Format_RGBA8888);
-    const QImage negx = QImage(":/cube3.png").mirrored().convertToFormat(QImage::Format_RGBA8888);
-    const QImage negy = QImage(":/cube4.png").mirrored().convertToFormat(QImage::Format_RGBA8888);
-    const QImage negz = QImage(":/cube5.png").mirrored().convertToFormat(QImage::Format_RGBA8888);
+    const QImage posx = QImage(":/cube0.png").convertToFormat(QImage::Format_RGBA8888);
+    const QImage posy = QImage(":/cube2.png").convertToFormat(QImage::Format_RGBA8888);
+    const QImage posz = QImage(":/cube4.png").convertToFormat(QImage::Format_RGBA8888);
+    const QImage negx = QImage(":/cube1.png").convertToFormat(QImage::Format_RGBA8888);
+    const QImage negy = QImage(":/cube3.png").convertToFormat(QImage::Format_RGBA8888);
+    const QImage negz = QImage(":/cube5.png").convertToFormat(QImage::Format_RGBA8888);
     m_cubeTexture->create();
     m_cubeTexture->setSize(posx.width(), posx.height(), posx.depth());
     m_cubeTexture->setFormat(QOpenGLTexture::RGBA8_UNorm);

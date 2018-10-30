@@ -1,12 +1,12 @@
 <RCC>
     <qresource prefix="/">
-        <file>texture.png</file>
-        <file>metal.png</file>
-        <file>cube0.png</file>
-        <file>cube1.png</file>
-        <file>cube2.png</file>
-        <file>cube3.png</file>
-        <file>cube4.png</file>
-        <file>cube5.png</file>
+    	<file alias="texture.png">resources/texture.png</file>
+    	<file alias="metal.png">resources/metal.png</file>
+    	<file alias="cube0.png">resources/cube0.png</file>
+    	<file alias="cube1.png">resources/cube1.png</file>
+    	<file alias="cube2.png">resources/cube2.png</file>
+    	<file alias="cube3.png">resources/cube3.png</file>
+    	<file alias="cube4.png">resources/cube4.png</file>
+    	<file alias="cube5.png">resources/cube5.png</file>
     </qresource>
 </RCC>

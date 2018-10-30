@@ -53,7 +53,7 @@ void main()
     float normalizationFactor = (material_shininess + 2.0) / 8.0;
 
     vec4 reflectionVector = inverseViewNormalMatrix * vec4(reflect(directionFromEye, normal), 0.0);
-    vec3 envMapSample = 0.2*textureCube(environmentMap, reflectionVector.xyz).rgb;
+    vec3 envMapSample = 0.3*textureCube(environmentMap, reflectionVector.xyz).rgb;
 
 
     vec3 ambient = material_diffuse_color * sampleDiffuseTexture();
