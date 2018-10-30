@@ -53,7 +53,7 @@ void main()
     float normalizationFactor = (material_shininess + 2.0) / 8.0;
 
     vec4 reflectionVector = inverseViewNormalMatrix * vec4(reflect(directionFromEye, normal), 0.0);
-    vec3 envMapSample = 0.3*textureCube(environmentMap, reflectionVector.xyz).rgb;
+    vec3 envMapSample = 0.5*textureCube(environmentMap, reflectionVector.xyz).rgb;
 
 
     vec3 ambient = material_diffuse_color * sampleDiffuseTexture();
@@ -63,7 +63,6 @@ void main()
             + calculateDiffuse(scene_light, diffuse, normal, directionToLight)
             + calculateSpecular(scene_light, specular, material_shininess,normal, directionToLight, directionFromEye)
             + emissive
-            + envMapSample*specular
-            + calculateFresnel(specular, normal, directionFromEye)*0.2;
+            + envMapSample*calculateFresnel(specular, normal, directionFromEye);
     fragColor = vec4(shading, 1.0);
 }
