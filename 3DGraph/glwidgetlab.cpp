@@ -4,81 +4,59 @@ GLWidgetLab::GLWidgetLab(QWidget* parent):GLEngineWidget(parent)
 {
     m_vshaderPath = ":/vshader.glsl";
     m_fshaderPath = ":/fshader.glsl";
-}
-
-void GLWidgetLab::initializeGL()
-{
-    initializeOpenGLFunctions();
+    m_vertexStorage.loadObj(":/simple_scene.obj");
     m_lightPosition = {0.0,1.0,0.0,1.0};
-
-    m_objLoader.load(":/simple_scene.obj");
-    loadShaders();
-    initTextures();
-
-    //todo: убрать в engine
-    GLuint vertexBuf;
-    GLuint texCoordBuf;
-    GLuint normalsBuf;
-    glGenBuffers(1, &vertexBuf);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuf);
-    glBufferData(GL_ARRAY_BUFFER, m_objLoader.getVertices()->count() * sizeof(float), m_objLoader.getVertices()->data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(m_positionAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glGenBuffers( 1, &texCoordBuf);
-    glBindBuffer(GL_ARRAY_BUFFER, texCoordBuf);
-    glBufferData(GL_ARRAY_BUFFER, m_objLoader.getUvs()->count() * sizeof(float), m_objLoader.getUvs()->data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(m_texCoordAttr, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glGenBuffers( 1, &normalsBuf);
-    glBindBuffer(GL_ARRAY_BUFFER, normalsBuf);
-    glBufferData(GL_ARRAY_BUFFER, m_objLoader.getNormals()->count() * sizeof(float), m_objLoader.getNormals()->data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(m_normalsAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glBindBuffer(GL_ARRAY_BUFFER,0);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_DEPTH_TEST);
+    m_decelerationCoefficient = 0.9;
+    m_cameraSpeedCoefficient = 0.1;
+    m_zNear = 0.2;
+    m_zFar = 50.0;
+    m_fov = 45.0;
+    m_texturePath = ":/metal.png";
+    m_cubeTexturesPath = {":/cube0.png",
+                          ":/cube2.png",
+                          ":/cube4.png",
+                          ":/cube1.png",
+                          ":/cube3.png",
+                          ":/cube5.png"};
+    m_positionAttr = "positionAttr";
+    m_texCoordAttr = "texCoordIn";
+    m_normalsAttr = "normalsIn";
+    m_rotationSens = 0.2;
 }
 
 void GLWidgetLab::paintGL()
 {
+    Q_ASSERT(m_qShaderProgram != nullptr);
+    Q_ASSERT(m_texture != nullptr);
+    Q_ASSERT(m_cubeTexture != nullptr);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.4,0.4,0.4,1.0);
 
     m_qShaderProgram->bind();
-    glEnableVertexAttribArray(m_positionAttr);
-    glEnableVertexAttribArray(m_texCoordAttr);
-    glEnableVertexAttribArray(m_normalsAttr);
-
     m_texture->bind(0);
     m_cubeTexture->bind(1);
-    m_qShaderProgram->setUniformValue("texture", 0);
-    m_qShaderProgram->setUniformValue("environmentMap", 1);
+
     QMatrix4x4 viewMatrix;
     m_eye = {m_cameraX, m_cameraY, m_cameraZ};
-    m_center = {m_cameraX - (float)sin(m_cameraAngleX / 180.0f * PI),
-                m_cameraY + (float)tan(m_cameraAngleY / 180.0f * PI),
-                m_cameraZ - (float)cos(m_cameraAngleX / 180.0f * PI)};
+    m_center = {m_cameraX - (float)sin(m_cameraAngleX / 180.0f * M_PI),
+                m_cameraY + (float)tan(m_cameraAngleY / 180.0f * M_PI),
+                m_cameraZ - (float)cos(m_cameraAngleX / 180.0f * M_PI)};
     viewMatrix.lookAt(m_eye,m_center,m_up);
     QMatrix4x4 modelMatrix;
     modelMatrix.translate(0.0,-1.0,-6.0);
     modelMatrix.rotate(-90.0,0.0,1.0,0.0);
-
-
-    glUniformMatrix4fv(m_matrixAttr, 1 , 0, (m_projection*viewMatrix*modelMatrix).data());
-    glUniformMatrix4fv(m_viewMatrixAttr, 1 , 0, (viewMatrix*modelMatrix).data());
-    glUniformMatrix4fv(m_normalMatrixAttr, 1 , 0, (viewMatrix*modelMatrix).transposed().inverted().data());
-    glUniformMatrix4fv(m_inverseViewNormalMatrixAttr, 1 , 0, viewMatrix.transposed().data());
-
     QVector4D viewSpaceLightPosition  = viewMatrix*m_lightPosition;
-    glUniform3f(m_viewSpaceLightPosition, viewSpaceLightPosition.x(), viewSpaceLightPosition.y(), viewSpaceLightPosition.z());
 
-    glDrawArrays(GL_TRIANGLES, 0, m_objLoader.verticesCount());
+    m_qShaderProgram->setUniformValue("texture", 0);
+    m_qShaderProgram->setUniformValue("environmentMap", 1);
+    m_qShaderProgram->setUniformValue("mvpMatrix",m_projection*viewMatrix*modelMatrix);
+    m_qShaderProgram->setUniformValue("modelViewMatrix",viewMatrix*modelMatrix);
+    m_qShaderProgram->setUniformValue("normalMatrix",(viewMatrix*modelMatrix).transposed().inverted());
+    m_qShaderProgram->setUniformValue("inverseViewNormalMatrix",viewMatrix.transposed());
+    m_qShaderProgram->setUniformValue("viewSpaceLightPosition",viewSpaceLightPosition);
 
-    glDisableVertexAttribArray(m_normalsAttr);
-    glDisableVertexAttribArray(m_texCoordAttr);
-    glDisableVertexAttribArray(m_positionAttr);
+    glDrawArrays(GL_TRIANGLES, 0, m_vertexStorage.verticesCount());
+
     m_qShaderProgram->release();
 }
 

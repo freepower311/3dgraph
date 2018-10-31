@@ -15,9 +15,7 @@
 #include <QTimer>
 #include <QOpenGLShaderProgram>
 #include <math.h>
-#include "objloader.h"
-
-const float PI = 3.141592653;
+#include "modelstorage.h"
 
 class GLEngineWidget : public QOpenGLWidget, public QOpenGLFunctions
 {
@@ -33,17 +31,14 @@ protected:
     void resizeGL(int w, int h);
     void initTextures();
     void resetCamera();
+    void initializeGL();
 protected slots:
     virtual void processCoordinates();
 protected:
     QOpenGLShaderProgram *m_qShaderProgram;
-    GLuint m_positionAttr;
-    GLuint m_texCoordAttr;
-    GLuint m_matrixAttr;
-    GLuint m_normalsAttr;
-    GLuint m_normalMatrixAttr;
-    GLuint m_viewMatrixAttr;
-    GLuint m_viewSpaceLightPosition;
+    QString m_positionAttr;
+    QString m_texCoordAttr;
+    QString m_normalsAttr;
     QString m_vshaderPath;
     QString m_fshaderPath;
     QOpenGLTexture *m_texture;
@@ -63,9 +58,17 @@ protected:
     float m_cameraYSpeed;
     float m_cameraZSpeed;
     QVector4D m_lightPosition;
-    OBJLoader m_objLoader;
+    ModelStorage m_vertexStorage;
     QOpenGLTexture* m_cubeTexture;
     GLuint m_inverseViewNormalMatrixAttr;
+    float m_decelerationCoefficient;
+    float m_cameraSpeedCoefficient;
+    qreal m_zNear;
+    qreal m_zFar;
+    qreal m_fov;
+    QString m_texturePath;
+    QVector<QString> m_cubeTexturesPath;
+    float m_rotationSens;
 };
 
 #endif // GLWIDGET_H

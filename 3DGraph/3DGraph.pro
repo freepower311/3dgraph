@@ -29,13 +29,13 @@ SOURCES += \
         mainwindow.cpp \
     glenginewidget.cpp \
     glwidgetlab.cpp \
-    objloader.cpp
+    modelstorage.cpp
 
 HEADERS += \
         mainwindow.h \
     glenginewidget.h \
     glwidgetlab.h \
-    objloader.h
+    modelstorage.h
 
 FORMS += \
         mainwindow.ui
