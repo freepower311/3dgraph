@@ -172,6 +172,12 @@ void GLEngineWidget::processCoordinates()
     m_cameraXSpeed *= m_decelerationCoefficient;
     m_cameraZSpeed *= m_decelerationCoefficient;
     m_cameraYSpeed *= m_decelerationCoefficient;
+    m_eye = {m_cameraX, m_cameraY, m_cameraZ};
+    m_center = {m_cameraX - (float)sin(m_cameraAngleX / 180.0f * M_PI),
+                m_cameraY + (float)tan(m_cameraAngleY / 180.0f * M_PI),
+                m_cameraZ - (float)cos(m_cameraAngleX / 180.0f * M_PI)};
+    m_viewMatrix.setToIdentity();
+    m_viewMatrix.lookAt(m_eye,m_center,m_up);
 }
 
 void GLEngineWidget::initializeGL()

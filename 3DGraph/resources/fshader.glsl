@@ -6,7 +6,7 @@ in vec4 viewSpaceNormal;
 in vec4 viewSpacePosition;
 out vec4 fragColor;
 
-uniform vec3 viewSpaceLightPosition;
+uniform vec4 viewSpaceLightPosition;
 uniform vec3 scene_ambient_light = vec3(0.05, 0.05, 0.05);
 uniform vec3 scene_light = vec3(0.6, 0.6, 0.6);
 
@@ -47,7 +47,7 @@ vec3 sampleDiffuseTexture()
 void main()
 {
     vec3 normal = normalize(viewSpaceNormal.xyz);
-    vec3 directionToLight = normalize(viewSpaceLightPosition - viewSpacePosition.xyz);
+    vec3 directionToLight = normalize(viewSpaceLightPosition.xyz - viewSpacePosition.xyz);
     vec3 directionFromEye = normalize(viewSpacePosition.xyz);
     vec3 specular = material_specular_color;
     float normalizationFactor = (material_shininess + 2.0) / 8.0;

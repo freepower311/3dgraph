@@ -36,24 +36,19 @@ void GLWidgetLab::paintGL()
     m_texture->bind(0);
     m_cubeTexture->bind(1);
 
-    QMatrix4x4 viewMatrix;
-    m_eye = {m_cameraX, m_cameraY, m_cameraZ};
-    m_center = {m_cameraX - (float)sin(m_cameraAngleX / 180.0f * M_PI),
-                m_cameraY + (float)tan(m_cameraAngleY / 180.0f * M_PI),
-                m_cameraZ - (float)cos(m_cameraAngleX / 180.0f * M_PI)};
-    viewMatrix.lookAt(m_eye,m_center,m_up);
+
     QMatrix4x4 modelMatrix;
     modelMatrix.translate(0.0,-1.0,-6.0);
     modelMatrix.rotate(-90.0,0.0,1.0,0.0);
-    QVector4D viewSpaceLightPosition  = viewMatrix*m_lightPosition;
+    QVector4D viewSpaceLightPosition  = m_viewMatrix * m_lightPosition;
 
     m_qShaderProgram->setUniformValue("texture", 0);
     m_qShaderProgram->setUniformValue("environmentMap", 1);
-    m_qShaderProgram->setUniformValue("mvpMatrix",m_projection*viewMatrix*modelMatrix);
-    m_qShaderProgram->setUniformValue("modelViewMatrix",viewMatrix*modelMatrix);
-    m_qShaderProgram->setUniformValue("normalMatrix",(viewMatrix*modelMatrix).transposed().inverted());
-    m_qShaderProgram->setUniformValue("inverseViewNormalMatrix",viewMatrix.transposed());
-    m_qShaderProgram->setUniformValue("viewSpaceLightPosition",viewSpaceLightPosition);
+    m_qShaderProgram->setUniformValue("mvpMatrix", m_projection*m_viewMatrix*modelMatrix);
+    m_qShaderProgram->setUniformValue("modelViewMatrix", m_viewMatrix*modelMatrix);
+    m_qShaderProgram->setUniformValue("normalMatrix", (m_viewMatrix*modelMatrix).transposed().inverted());
+    m_qShaderProgram->setUniformValue("inverseViewNormalMatrix", m_viewMatrix.transposed());
+    m_qShaderProgram->setUniformValue("viewSpaceLightPosition", viewSpaceLightPosition);
 
     glDrawArrays(GL_TRIANGLES, 0, m_vertexStorage.verticesCount());
 

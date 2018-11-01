@@ -31,32 +31,53 @@ void ModelStorage::loadObj(const QString &path)
             {
                 for(int i = 0;i<3;i++)
                 {
-                    QStringList indexes = list[i+1].split("/");
-                    m_vertexIndices.append(indexes[0].toInt());
-                    m_uvIndices.append(indexes[1].toInt());
-                    m_normalIndices.append(indexes[2].toInt());
+                    QStringList indices = list[i+1].split("/");
+                    m_vertexIndices.append(indices[0].toInt());
+                    m_uvIndices.append(indices[1].toInt());
+                    m_normalIndices.append(indices[2].toInt());
                 }
             }
             else if (list.count() > 0 && list.count() != 4 && list[0] == "f")
             {
-                qWarning() << "ModelStorage::loadObj:" << "Loader supports triangles only.";
+                qWarning() << "ModelStorage::loadObj: Loader supports triangles only";
                 return;
             }
         }
-        //build
+        const QString parseErrorMessage = "ModelStorage::loadObj: Parse error";
+        if (m_vertexIndices.count() != m_uvIndices.count()
+                || m_vertexIndices.count() != m_normalIndices.count())
+        {
+            qWarning() << parseErrorMessage;
+            return;
+        }
         foreach (const int i, m_vertexIndices)
         {
+            if (i > m_tempVertices.count())
+            {
+                qWarning() << parseErrorMessage;
+                return;
+            }
             m_vertices.append(m_tempVertices[i-1][0]);
             m_vertices.append(m_tempVertices[i-1][1]);
             m_vertices.append(m_tempVertices[i-1][2]);
         }
         foreach (const int i, m_uvIndices)
         {
+            if (i > m_tempUvs.count())
+            {
+                qWarning() << parseErrorMessage;
+                return;
+            }
             m_uvs.append(m_tempUvs[i-1][0]);
             m_uvs.append(m_tempUvs[i-1][1]);
         }
         foreach (const int i, m_normalIndices)
         {
+            if (i > m_tempNormals.count())
+            {
+                qWarning() << parseErrorMessage;
+                return;
+            }
             m_normals.append(m_tempNormals[i-1][0]);
             m_normals.append(m_tempNormals[i-1][1]);
             m_normals.append(m_tempNormals[i-1][2]);
@@ -65,7 +86,7 @@ void ModelStorage::loadObj(const QString &path)
     }
     else
     {
-        qWarning() << "ModelStorage::loadObj:" << "Unable to open file" << path;
+        qWarning() << "ModelStorage::loadObj: Unable to open file" << path;
     }
 }
 

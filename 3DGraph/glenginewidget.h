@@ -69,6 +69,7 @@ protected:
     QString m_texturePath;
     QVector<QString> m_cubeTexturesPath;
     float m_rotationSens;
+    QMatrix4x4 m_viewMatrix;
 };
 
 #endif // GLWIDGET_H
