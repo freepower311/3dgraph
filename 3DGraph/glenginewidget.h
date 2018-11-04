@@ -41,6 +41,8 @@ protected:
     QString m_normalsAttr;
     QString m_vshaderPath;
     QString m_fshaderPath;
+    QString m_vShadowShaderPath;
+    QString m_fShadowShaderPath;
     QOpenGLTexture *m_texture;
     QMatrix4x4 m_projection;
     QVector2D m_mousePressPosition;
@@ -70,6 +72,12 @@ protected:
     QVector<QString> m_cubeTexturesPath;
     float m_rotationSens;
     QMatrix4x4 m_viewMatrix;
+    GLuint shadowMapTexture ;
+    QOpenGLShaderProgram *m_qShadowShaderProgram;
+    int SCR_WIDTH;
+    int SCR_HEIGHT;
+    GLuint shadowMapFBO;
+    int shadowMapResolution;
 };
 
 #endif // GLWIDGET_H

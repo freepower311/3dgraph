@@ -82,7 +82,6 @@ void ModelStorage::loadObj(const QString &path)
             m_normals.append(m_tempNormals[i-1][1]);
             m_normals.append(m_tempNormals[i-1][2]);
         }
-        m_verticesCount = m_vertexIndices.count();
     }
     else
     {
@@ -102,7 +101,7 @@ QVector<float>* ModelStorage::getNormals()
 {
     return &m_normals;
 }
-int ModelStorage::verticesCount()
+int ModelStorage::coordCount()
 {
-    return m_verticesCount;
+    return m_vertices.count();
 }

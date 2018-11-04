@@ -20,6 +20,7 @@ GLEngineWidget::GLEngineWidget(QWidget* parent) : QOpenGLWidget(parent)
     m_zFar = 50.0;
     m_fov = 45.0;
     m_rotationSens = 0.2;
+    shadowMapResolution = 1024;
 }
 
 void GLEngineWidget::resetCamera(){
@@ -41,6 +42,11 @@ void GLEngineWidget::loadShaders()
     m_qShaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, m_vshaderPath);
     m_qShaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, m_fshaderPath);
     m_qShaderProgram->link();
+
+    m_qShadowShaderProgram = new QOpenGLShaderProgram(this);
+    m_qShadowShaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, m_vShadowShaderPath);
+    m_qShadowShaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, m_fShadowShaderPath);
+    m_qShadowShaderProgram->link();
 }
 
 void GLEngineWidget::mousePressEvent(QMouseEvent *e)
@@ -111,6 +117,8 @@ void GLEngineWidget::keyPressEvent(QKeyEvent *e)
 
 void GLEngineWidget::resizeGL(int w, int h)
 {
+    SCR_WIDTH = w;
+    SCR_HEIGHT = h;
     const qreal aspect = qreal(w) / qreal(h ? h : 1);
     m_projection.setToIdentity();
     m_projection.perspective(m_fov, aspect, m_zNear, m_zFar);
@@ -162,6 +170,10 @@ void GLEngineWidget::initTextures()
         m_cubeTexture->setMagnificationFilter(QOpenGLTexture::LinearMipMapLinear);
         m_cubeTexture->generateMipMaps();
     }
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_texture->textureId());
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeTexture->textureId());
 }
 
 void GLEngineWidget::processCoordinates()
@@ -206,9 +218,38 @@ void GLEngineWidget::initializeGL()
 
     glBindBuffer(GL_ARRAY_BUFFER,0);
 
+    glGenTextures(1, &shadowMapTexture );
+    glBindTexture(GL_TEXTURE_2D, shadowMapTexture );
+    glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT32, shadowMapResolution, shadowMapResolution, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);//GL_REPEAT
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);//GL_CLAMP_TO_EDGE
+
+    glBindTexture( GL_TEXTURE_2D, 0 );
+
+    glGenFramebuffers(1, &shadowMapFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMapTexture, 0);
+
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    // check that our framebuffer is ok
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        qWarning() << "glCheckFramebufferStatus NOT OK";
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0 );
+
+    /*glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, shadowMapTexture);*/
+
+
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     glEnableVertexAttribArray(m_qShaderProgram->attributeLocation(m_positionAttr));
     glEnableVertexAttribArray(m_qShaderProgram->attributeLocation(m_texCoordAttr));
     glEnableVertexAttribArray(m_qShaderProgram->attributeLocation(m_normalsAttr));
