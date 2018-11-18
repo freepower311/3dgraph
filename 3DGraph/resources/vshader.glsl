@@ -19,7 +19,6 @@ void main()
     viewSpacePosition = modelViewMatrix * positionAttr;
     gl_Position = mvpMatrix * positionAttr;
     shadowMapCoord = depthMVP * viewSpacePosition;
-    shadowMapCoord.w = 1.0;
     shadowMapCoord.xyz *= vec3(0.5, 0.5, 0.5);
     shadowMapCoord.xyz += shadowMapCoord.w * vec3(0.5, 0.5, 0.5);
 }

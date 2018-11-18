@@ -11,6 +11,8 @@ uniform vec3 material_diffuse_color = vec3(1.0);
 uniform vec3 material_specular_color = vec3(0.9);
 uniform vec3 material_emissive_color = vec3(0.0);
 uniform float material_shininess = 25.0;
+uniform vec3 viewSpaceLightDir;
+uniform float spotOpeningAngle;
 in vec2 texCoord;
 in vec4 viewSpaceNormal;
 in vec4 viewSpacePosition;
@@ -59,6 +61,9 @@ void main()
     float depth = texture2D(shadowMapTex, shadowMapCoord.xy / shadowMapCoord.w ).x;
     float visibility = (depth >= (shadowMapCoord.z/shadowMapCoord.w))? 1.0 : 0.0;
 
+    float angle = dot(directionToLight,-viewSpaceLightDir);
+    float spotAttenuation = (angle > spotOpeningAngle) ? 1.0 : 0.0;
+
     vec3 ambient = material_diffuse_color * sampleDiffuseTexture();
     vec3 diffuse = sampleDiffuseTexture() * material_diffuse_color;
     vec3 emissive = sampleDiffuseTexture() * material_emissive_color;
@@ -69,7 +74,9 @@ void main()
             + visibility*envMapSample*calculateFresnel(specular, normal, directionFromEye)*sampleDiffuseTexture();
 
 
-
-    //fragColor = vec4(shading, 1.0);
-    fragColor = texture2D(shadowMapTex, texCoord);
+    fragColor = vec4(shading, 1.0);
+    //fragColor = vec4(spotAttenuation*shading, 1.0);
+    //fragColor = texture2D(shadowMapTex, texCoord);
+    //fragColor = vec4(visibility);
+    //fragColor.w = 1.0;
 }

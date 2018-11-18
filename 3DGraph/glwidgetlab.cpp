@@ -36,33 +36,37 @@ void GLWidgetLab::paintGL()
     Q_ASSERT(m_cubeTexture != nullptr);
     Q_ASSERT(m_qShadowShaderProgram != nullptr);
 
-
     QMatrix4x4 modelMatrix;
     modelMatrix.translate(0.0,0.0,-6.0);
     //modelMatrix.rotate(-90.0,0.0,1.0,0.0);
     QVector4D viewSpaceLightPosition  = m_viewMatrix * m_lightPosition;
-
     QMatrix4x4 lightProjectionMatrix;
-    lightProjectionMatrix.perspective(45.0f,1.0,5.0f, 100.0f);//(m_fov, aspect, m_zNear, m_zFar)
+    lightProjectionMatrix.perspective(70.0f,1.0,5.0f, 100.0f);//(m_fov, aspect, m_zNear, m_zFar)
     QMatrix4x4 lightViewMatrix;
     lightViewMatrix.lookAt(m_lightPosition.toVector3D(), m_lightPosition.toVector3D() + QVector3D(0.106518, -0.963609, -13.6411), QVector3D(0,1,0));
     //qDebug() << m_cameraX << m_cameraY << m_cameraZ;
-    QMatrix4x4 lightMatrix = lightProjectionMatrix * lightViewMatrix*modelMatrix * m_viewMatrix.inverted();
-    QMatrix4x4 lightMatrix1 = lightProjectionMatrix * lightViewMatrix*modelMatrix;
+    QMatrix4x4 lightMatrix = lightProjectionMatrix * lightViewMatrix * m_viewMatrix.inverted();
+    QMatrix4x4 lightMatrix1 = lightProjectionMatrix * lightViewMatrix * modelMatrix;
+
+    //QMatrix4x4 anotherViewMatrix;
+    //anotherViewMatrix.rotate(m_cameraAngleX,{0,0,1});
+    //anotherViewMatrix.rotate(m_cameraAngleY,{0,-1,0});
+    //QVector3D viewSpaceLightDir = {0,0.0,-1};//((-m_lightPosition.normalized())).toVector3D();
+    //viewSpaceLightDir = anotherViewMatrix*viewSpaceLightDir;
     m_qShadowShaderProgram->bind();
     m_qShadowShaderProgram->setUniformValue("depthMVP", lightMatrix1);
     m_qShadowShaderProgram->bindAttributeLocation("positionAttr", m_qShaderProgram->attributeLocation(m_positionAttr));
-
+    glEnable( GL_POLYGON_OFFSET_FILL );
+    glPolygonOffset( 2.5, 10 );
     glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
     glViewport(0, 0, shadowMapResolution, shadowMapResolution);
     glClear(GL_DEPTH_BUFFER_BIT);
-    //glClearColor(1.0,1.0,1.0,1.0);
     glDrawArrays(GL_TRIANGLES, 0, m_vertexStorage.coordCount()/3);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     m_qShadowShaderProgram->release();
 
 
-    //return;
+    glDisable( GL_POLYGON_OFFSET_FILL );
 
     m_qShaderProgram->bind();
     m_texture->bind(0);
@@ -83,6 +87,9 @@ void GLWidgetLab::paintGL()
     m_qShaderProgram->setUniformValue("normalMatrix", (m_viewMatrix*modelMatrix).transposed().inverted());
     m_qShaderProgram->setUniformValue("inverseViewNormalMatrix", m_viewMatrix.transposed());
     m_qShaderProgram->setUniformValue("viewSpaceLightPosition", viewSpaceLightPosition);
+    //m_qShaderProgram->setUniformValue("viewSpaceLightDir", viewSpaceLightDir );
+    //m_qShaderProgram->setUniformValue("spotOpeningAngle", (GLfloat)cos(20.0f*3.1415f/180.0f));
+
     glDrawArrays(GL_TRIANGLES, 0, m_vertexStorage.coordCount()/3);//GL_TRIANGLES
 
     m_qShaderProgram->release();
@@ -92,10 +99,10 @@ void GLWidgetLab::processCoordinates()
 {
     GLEngineWidget::processCoordinates();
     //move light for debugging
-    /*static float moveStep = 0.02;
+    static float moveStep = 0.02;
     m_lightPosition[0] += moveStep;
     if (m_lightPosition[0] > 3.0 || m_lightPosition[0] < -3.0)
-        moveStep *= -1;*/
+        moveStep *= -1;
 }
 
 void GLWidgetLab::calcVertices()
