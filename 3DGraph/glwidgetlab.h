@@ -14,6 +14,13 @@ protected:
     virtual void processCoordinates();
 private:
     QVector<QVector4D> sphereVertices;
+    int m_spheresPerClaster;
+    int m_spheresArcPointCount;
+    int m_spheresArcsCount;
+    QVector<QVector3D> m_spheresClastersCenters;
+    float m_spheresDispersionXZ;
+    float m_spheresDispersionY;
+    float m_spheresScale;
 };
 
 #endif // GLWIDGETLAB2_H
