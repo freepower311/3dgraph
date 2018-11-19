@@ -232,19 +232,19 @@ void GLEngineWidget::initializeGL()
     glVertexAttribPointer(m_qShaderProgram->attributeLocation(m_normalsAttr), 3, GL_FLOAT, GL_FALSE, 0, 0);
     glBindBuffer(GL_ARRAY_BUFFER,0);
 
-    glGenTextures(1, &shadowMapTexture );
-    glBindTexture(GL_TEXTURE_2D, shadowMapTexture );
+    glGenTextures(1, &m_shadowMapTexture );
+    glBindTexture(GL_TEXTURE_2D, m_shadowMapTexture );
     glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT32, m_shadowMapResolution, m_shadowMapResolution, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     float zeros[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); //GL_REPEAT GL_CLAMP_TO_EDGE GL_CLAMP_TO_BORDER
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, zeros);
     glBindTexture(GL_TEXTURE_2D, 0);
     glGenFramebuffers(1, &m_shadowMapFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMapTexture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_shadowMapTexture, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)

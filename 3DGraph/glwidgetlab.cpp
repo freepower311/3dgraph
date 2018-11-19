@@ -69,7 +69,7 @@ void GLWidgetLab::paintGL()
     glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapFBO);
     glViewport(0, 0, m_shadowMapResolution, m_shadowMapResolution);
     glClear(GL_DEPTH_BUFFER_BIT);
-    glDrawArrays(GL_TRIANGLES, 0, m_vertexStorage.coordCount() / 3);
+    glDrawArrays(GL_TRIANGLES, 0, m_vertexStorage.coordCount());
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_POLYGON_OFFSET_FILL);
     m_qShadowShaderProgram->release();
@@ -78,7 +78,7 @@ void GLWidgetLab::paintGL()
     m_texture->bind(0);
     m_cubeTexture->bind(1);
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
+    glBindTexture(GL_TEXTURE_2D, m_shadowMapTexture);
     glViewport(0, 0, m_screenWidth, m_screenHeight);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.4,0.4,0.4,1.0);
@@ -94,7 +94,7 @@ void GLWidgetLab::paintGL()
     m_qShaderProgram->setUniformValue("viewSpaceLightDir", m_currViewSpaceLightDir);
     m_qShaderProgram->setUniformValue("spotOuterAngle", m_spotOuterAngle);
     m_qShaderProgram->setUniformValue("spotInnerAngle", m_spotInnerAngle);
-    glDrawArrays(GL_TRIANGLES, 0, m_vertexStorage.coordCount()/3);
+    glDrawArrays(GL_TRIANGLES, 0, m_vertexStorage.coordCount());
     m_qShaderProgram->release();
 }
 
@@ -147,21 +147,21 @@ void GLWidgetLab::calcVertices()
         for(int i = 0; i < m_spheresPerClaster - 1; i++)
         {
             QMatrix4x4 translateMatrix;
-            translateMatrix.translate(clasterCenter.x() + (rand()*m_spheresDispersionXZ/RAND_MAX - m_spheresDispersionXZ/2),
-                                      clasterCenter.y() + (rand()*m_spheresDispersionY/RAND_MAX - m_spheresDispersionY/2),
-                                      clasterCenter.z() + (rand()*m_spheresDispersionXZ/RAND_MAX - m_spheresDispersionXZ/2));
-            float currColor = rand()*1.0/RAND_MAX;
-            foreach(const QVector4D coord, sphereVertices)
+            translateMatrix.translate(clasterCenter.x() + (rand() * m_spheresDispersionXZ / RAND_MAX - m_spheresDispersionXZ / 2),
+                                      clasterCenter.y() + (rand() * m_spheresDispersionY  / RAND_MAX - m_spheresDispersionY  / 2),
+                                      clasterCenter.z() + (rand() * m_spheresDispersionXZ / RAND_MAX - m_spheresDispersionXZ / 2));
+            float currColor = rand() * 1.0 / RAND_MAX;
+            foreach(const QVector4D coord, m_sphereVertices)
             {
                 QVector4D realCoord = m_spheresScale * coord;
                 realCoord = translateMatrix * realCoord;
                 vertices->append(realCoord.x());
                 vertices->append(realCoord.y());
                 vertices->append(realCoord.z());
-                normals->append(coord.x()); //normals = coords when center = (0.0,0.0,0.0)
+                normals->append(coord.x()); //normals == coords when center == (0.0,0.0,0.0)
                 normals->append(coord.y());
                 normals->append(coord.z());
-                uvs->append(currColor); //0.99 - red, 0.01 - green
+                uvs->append(currColor); //0.01 - green, 0.99 - red
                 uvs->append(0.75);
             }
         }
@@ -172,7 +172,7 @@ void GLWidgetLab::calcVertices()
     {
         QMatrix4x4 translateMatrix;
         translateMatrix.translate(0, -2.05, 0);
-        for(int i = 0; i < coneModel.coordCount(); i += 3)
+        for(int i = 0; i < coneModel.getVertices()->count(); i += 3)
         {
             QVector4D realCoord(coneModel.getVertices()->at(i),
                                 coneModel.getVertices()->at(i + 1),
@@ -186,7 +186,7 @@ void GLWidgetLab::calcVertices()
         normals->append(*coneModel.getNormals());
         uvs->append(*coneModel.getUvs());
     }
-    qDebug() << vertices->count() / 3 << "triangles";
+    qDebug() << m_vertexStorage.coordCount() << "triangles";
 }
 
 void GLWidgetLab::calcSphere()
@@ -200,22 +200,22 @@ void GLWidgetLab::calcSphere()
                         1.0});
     }
     QMatrix4x4 rotateMatrix;
-    rotateMatrix.rotate(360.0/m_spheresArcsCount,1.0,0.0,0.0);
+    rotateMatrix.rotate(360.0 / m_spheresArcsCount, 1.0, 0.0, 0.0);
     QVector<QVector4D> nextArc;
     for(int j = 0; j < m_spheresArcsCount; j++)
     {
         nextArc.clear();
         foreach (const QVector4D coord, currArc) {
-            nextArc.append(rotateMatrix*coord);
+            nextArc.append(rotateMatrix * coord);
         }
         for(int i = 0; i < m_spheresArcPointCount - 1; i++)
         {
-            sphereVertices.append(currArc[i]);
-            sphereVertices.append(currArc[i+1]);
-            sphereVertices.append(nextArc[i]);
-            sphereVertices.append(currArc[i+1]);
-            sphereVertices.append(nextArc[i+1]);
-            sphereVertices.append(nextArc[i]);
+            m_sphereVertices.append(currArc[i]);
+            m_sphereVertices.append(currArc[i + 1]);
+            m_sphereVertices.append(nextArc[i]);
+            m_sphereVertices.append(currArc[i + 1]);
+            m_sphereVertices.append(nextArc[i + 1]);
+            m_sphereVertices.append(nextArc[i]);
         }
         currArc = nextArc;
     }

@@ -1,5 +1,5 @@
-#ifndef OBJLOADER_H
-#define OBJLOADER_H
+#ifndef MODELSTORAGE_H
+#define MODELSTORAGE_H
 
 #include <QDebug>
 #include <QVector>
@@ -33,4 +33,4 @@ private:
     QVector<float> m_normals;
 };
 
-#endif // OBJLOADER_H
+#endif // MODELSTORAGE_H

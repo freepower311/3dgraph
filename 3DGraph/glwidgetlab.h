@@ -13,7 +13,7 @@ public:
 protected:
     virtual void processCoordinates();
 private:
-    QVector<QVector4D> sphereVertices;
+    QVector<QVector4D> m_sphereVertices;
     int m_spheresPerClaster;
     int m_spheresArcPointCount;
     int m_spheresArcsCount;

@@ -73,7 +73,7 @@ protected:
     QVector<QString> m_cubeTexturesPath;
     float m_rotationSens;
     QMatrix4x4 m_viewMatrix;
-    GLuint shadowMapTexture ;
+    GLuint m_shadowMapTexture ;
     QOpenGLShaderProgram *m_qShadowShaderProgram;
     int m_screenWidth;
     int m_screenHeight;

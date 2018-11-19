@@ -103,5 +103,5 @@ QVector<float>* ModelStorage::getNormals()
 }
 int ModelStorage::coordCount()
 {
-    return m_vertices.count();
+    return m_vertices.count() / 3;
 }
