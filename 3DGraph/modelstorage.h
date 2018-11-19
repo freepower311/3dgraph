@@ -1,5 +1,5 @@
-#ifndef OBJLOADER_H
-#define OBJLOADER_H
+#ifndef MODELSTORAGE_H
+#define MODELSTORAGE_H
 
 #include <QDebug>
 #include <QVector>
@@ -20,7 +20,7 @@ public:
     QVector<float>* getVertices();
     QVector<float>* getUvs();
     QVector<float>* getNormals();
-    int verticesCount();
+    int coordCount();
 private:
     QVector<unsigned int> m_vertexIndices;
     QVector<unsigned int> m_uvIndices;
@@ -31,7 +31,6 @@ private:
     QVector<float> m_vertices;
     QVector<float> m_uvs;
     QVector<float> m_normals;
-    int m_verticesCount;
 };
 
-#endif // OBJLOADER_H
+#endif // MODELSTORAGE_H

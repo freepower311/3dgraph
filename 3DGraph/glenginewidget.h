@@ -41,6 +41,8 @@ protected:
     QString m_normalsAttr;
     QString m_vshaderPath;
     QString m_fshaderPath;
+    QString m_vShadowShaderPath;
+    QString m_fShadowShaderPath;
     QOpenGLTexture *m_texture;
     QMatrix4x4 m_projection;
     QVector2D m_mousePressPosition;
@@ -63,6 +65,7 @@ protected:
     GLuint m_inverseViewNormalMatrixAttr;
     float m_decelerationCoefficient;
     float m_cameraSpeedCoefficient;
+    float m_currentCameraSpeedCoefficient;
     qreal m_zNear;
     qreal m_zFar;
     qreal m_fov;
@@ -70,6 +73,16 @@ protected:
     QVector<QString> m_cubeTexturesPath;
     float m_rotationSens;
     QMatrix4x4 m_viewMatrix;
+    GLuint m_shadowMapTexture ;
+    QOpenGLShaderProgram *m_qShadowShaderProgram;
+    int m_screenWidth;
+    int m_screenHeight;
+    GLuint m_shadowMapFBO;
+    int m_shadowMapResolution;
+    QVector3D m_viewSpaceLightDir;
+    QVector3D m_currViewSpaceLightDir;
+    GLfloat m_spotOuterAngle;
+    GLfloat m_spotInnerAngle;
 };
 
 #endif // GLWIDGET_H

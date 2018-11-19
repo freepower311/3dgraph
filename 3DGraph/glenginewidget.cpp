@@ -13,17 +13,22 @@ GLEngineWidget::GLEngineWidget(QWidget* parent) : QOpenGLWidget(parent)
     connect(&m_drawSceneTimer, SIGNAL(timeout()), this, SLOT(update()));
     connect(&m_processCoordinatesTimer, SIGNAL(timeout()), this, SLOT(processCoordinates()));
     //default constants
-    m_lightPosition = {0.0,1.0,0.0,1.0};
+    m_lightPosition = {0.0, 1.0, 0.0, 1.0};
     m_decelerationCoefficient = 0.9;
     m_cameraSpeedCoefficient = 0.1;
     m_zNear = 0.2;
     m_zFar = 50.0;
     m_fov = 45.0;
     m_rotationSens = 0.2;
+    m_shadowMapResolution = 1024;
+    m_viewSpaceLightDir = {0, 0, -1};
+    m_spotOuterAngle = cos(20.0 * M_PI / 180.0);
+    m_spotInnerAngle = cos(20.0 * M_PI / 180.0);
 }
 
 void GLEngineWidget::resetCamera(){
-    m_up = {0,1,0};
+    m_currentCameraSpeedCoefficient = m_cameraSpeedCoefficient;
+    m_up = {0, 1, 0};
     m_cameraX = 0;
     m_cameraY = 0;
     m_cameraZ = 0;
@@ -36,11 +41,15 @@ void GLEngineWidget::resetCamera(){
 
 void GLEngineWidget::loadShaders()
 {
-    //compile shaders
     m_qShaderProgram = new QOpenGLShaderProgram(this);
     m_qShaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, m_vshaderPath);
     m_qShaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, m_fshaderPath);
     m_qShaderProgram->link();
+
+    m_qShadowShaderProgram = new QOpenGLShaderProgram(this);
+    m_qShadowShaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, m_vShadowShaderPath);
+    m_qShadowShaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, m_fShadowShaderPath);
+    m_qShadowShaderProgram->link();
 }
 
 void GLEngineWidget::mousePressEvent(QMouseEvent *e)
@@ -54,8 +63,8 @@ void GLEngineWidget::mouseMoveEvent(QMouseEvent *e)
 {
     QVector2D diff = QVector2D(e->localPos()) - m_mousePressPosition;
     m_mousePressPosition = QVector2D(e->localPos());
-    m_cameraAngleX += diff.x()*m_rotationSens;
-    m_cameraAngleY += diff.y()*m_rotationSens;
+    m_cameraAngleX += diff.x() * m_rotationSens;
+    m_cameraAngleY += diff.y() * m_rotationSens;
     if (m_cameraAngleY >= 90.0)
         m_cameraAngleY = 89.9;
     if (m_cameraAngleY <= -90.0)
@@ -77,31 +86,39 @@ void GLEngineWidget::keyPressEvent(QKeyEvent *e)
         break;
     case 1060: //ф
     case Qt::Key_A:
-        m_cameraXSpeed = (float)sin(( m_cameraAngleX - 90)/180*M_PI) * m_cameraSpeedCoefficient;
-        m_cameraZSpeed = (float)cos(( m_cameraAngleX - 90)/180*M_PI) * m_cameraSpeedCoefficient;
+        m_cameraXSpeed = (float)sin(( m_cameraAngleX - 90) / 180 * M_PI) * m_currentCameraSpeedCoefficient;
+        m_cameraZSpeed = (float)cos(( m_cameraAngleX - 90) / 180 * M_PI) * m_currentCameraSpeedCoefficient;
         break;
     case 1062: //ц
     case Qt::Key_W:
-        m_cameraXSpeed = -(float)sin(m_cameraAngleX/180*M_PI) * m_cameraSpeedCoefficient;
-        m_cameraZSpeed = -(float)cos(m_cameraAngleX/180*M_PI) * m_cameraSpeedCoefficient;
+        m_cameraXSpeed = -(float)sin(m_cameraAngleX / 180 * M_PI) * m_currentCameraSpeedCoefficient;
+        m_cameraZSpeed = -(float)cos(m_cameraAngleX / 180 * M_PI) * m_currentCameraSpeedCoefficient;
         break;
     case 1067: //ы
     case Qt::Key_S:
-        m_cameraXSpeed = (float)sin(m_cameraAngleX/180*M_PI) * m_cameraSpeedCoefficient;
-        m_cameraZSpeed = (float)cos(m_cameraAngleX/180*M_PI) * m_cameraSpeedCoefficient;
+        m_cameraXSpeed = (float)sin(m_cameraAngleX / 180 * M_PI) * m_currentCameraSpeedCoefficient;
+        m_cameraZSpeed = (float)cos(m_cameraAngleX / 180 * M_PI) * m_currentCameraSpeedCoefficient;
         break;
     case 1042: //в
     case Qt::Key_D:
-        m_cameraXSpeed = (float)sin(( m_cameraAngleX + 90)/180*M_PI) * m_cameraSpeedCoefficient;
-        m_cameraZSpeed = (float)cos(( m_cameraAngleX + 90)/180*M_PI) * m_cameraSpeedCoefficient;
+        m_cameraXSpeed = (float)sin(( m_cameraAngleX + 90) / 180 * M_PI) * m_currentCameraSpeedCoefficient;
+        m_cameraZSpeed = (float)cos(( m_cameraAngleX + 90) / 180 * M_PI) * m_currentCameraSpeedCoefficient;
         break;
     case 1071: //я
     case Qt::Key_Z:
-        m_cameraYSpeed = -m_cameraSpeedCoefficient;
+        m_cameraYSpeed = -m_currentCameraSpeedCoefficient;
         break;
     case 1063: //ч
     case Qt::Key_X:
-        m_cameraYSpeed = m_cameraSpeedCoefficient;
+        m_cameraYSpeed = m_currentCameraSpeedCoefficient;
+        break;
+    case 1057: //с
+    case Qt::Key_C:
+        m_currentCameraSpeedCoefficient *= 0.5;
+        break;
+    case 1052: //м
+    case Qt::Key_V:
+        m_currentCameraSpeedCoefficient *= 2;
         break;
     default:
         break;
@@ -111,7 +128,9 @@ void GLEngineWidget::keyPressEvent(QKeyEvent *e)
 
 void GLEngineWidget::resizeGL(int w, int h)
 {
-    const qreal aspect = qreal(w) / qreal(h ? h : 1);
+    m_screenWidth = w;
+    m_screenHeight = h;
+    const qreal aspect = qreal(m_screenWidth) / qreal(m_screenHeight ? m_screenHeight : 1);
     m_projection.setToIdentity();
     m_projection.perspective(m_fov, aspect, m_zNear, m_zFar);
 }
@@ -162,6 +181,10 @@ void GLEngineWidget::initTextures()
         m_cubeTexture->setMagnificationFilter(QOpenGLTexture::LinearMipMapLinear);
         m_cubeTexture->generateMipMaps();
     }
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_texture->textureId());
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeTexture->textureId());
 }
 
 void GLEngineWidget::processCoordinates()
@@ -178,6 +201,12 @@ void GLEngineWidget::processCoordinates()
                 m_cameraZ - (float)cos(m_cameraAngleX / 180.0f * M_PI)};
     m_viewMatrix.setToIdentity();
     m_viewMatrix.lookAt(m_eye,m_center,m_up);
+    QMatrix4x4 spotDirectionMatrix;
+    QVector3D spotCenter = { -(float)sin(m_cameraAngleX / 180.0f * M_PI),
+                              (float)tan(m_cameraAngleY / 180.0f * M_PI),
+                             -(float)cos(m_cameraAngleX / 180.0f * M_PI)};
+    spotDirectionMatrix.lookAt({0, 0, 0}, spotCenter, {0, 1, 0});
+    m_currViewSpaceLightDir = spotDirectionMatrix * m_viewSpaceLightDir;
 }
 
 void GLEngineWidget::initializeGL()
@@ -193,26 +222,43 @@ void GLEngineWidget::initializeGL()
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuf);
     glBufferData(GL_ARRAY_BUFFER, m_vertexStorage.getVertices()->count() * sizeof(float), m_vertexStorage.getVertices()->data(), GL_STATIC_DRAW);
     glVertexAttribPointer(m_qShaderProgram->attributeLocation(m_positionAttr), 3, GL_FLOAT, GL_FALSE, 0, 0);
-
     glGenBuffers(1, &texCoordBuf);
     glBindBuffer(GL_ARRAY_BUFFER, texCoordBuf);
     glBufferData(GL_ARRAY_BUFFER, m_vertexStorage.getUvs()->count() * sizeof(float), m_vertexStorage.getUvs()->data(), GL_STATIC_DRAW);
     glVertexAttribPointer(m_qShaderProgram->attributeLocation(m_texCoordAttr), 2, GL_FLOAT, GL_FALSE, 0, 0);
-
     glGenBuffers(1, &normalsBuf);
     glBindBuffer(GL_ARRAY_BUFFER, normalsBuf);
     glBufferData(GL_ARRAY_BUFFER, m_vertexStorage.getNormals()->count() * sizeof(float), m_vertexStorage.getNormals()->data(), GL_STATIC_DRAW);
     glVertexAttribPointer(m_qShaderProgram->attributeLocation(m_normalsAttr), 3, GL_FLOAT, GL_FALSE, 0, 0);
-
     glBindBuffer(GL_ARRAY_BUFFER,0);
+
+    glGenTextures(1, &m_shadowMapTexture );
+    glBindTexture(GL_TEXTURE_2D, m_shadowMapTexture );
+    glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT32, m_shadowMapResolution, m_shadowMapResolution, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    float zeros[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, zeros);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glGenFramebuffers(1, &m_shadowMapFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_shadowMapTexture, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        qWarning() << "glCheckFramebufferStatus NOT OK";
+    glBindFramebuffer(GL_FRAMEBUFFER, 0 );
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     glEnableVertexAttribArray(m_qShaderProgram->attributeLocation(m_positionAttr));
     glEnableVertexAttribArray(m_qShaderProgram->attributeLocation(m_texCoordAttr));
     glEnableVertexAttribArray(m_qShaderProgram->attributeLocation(m_normalsAttr));
-
+    m_currentCameraSpeedCoefficient = m_cameraSpeedCoefficient;
     QOpenGLWidget::initializeGL();
 }
 
