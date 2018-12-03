@@ -41,6 +41,7 @@ void GLEngineWidget::resetCamera(){
 
 void GLEngineWidget::loadShaders()
 {
+    Q_ASSERT(!(m_vshaderPath.isEmpty() || m_fshaderPath.isEmpty()));
     m_qShaderProgram = new QOpenGLShaderProgram(this);
     m_qShaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, m_vshaderPath);
     m_qShaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, m_fshaderPath);
@@ -181,10 +182,6 @@ void GLEngineWidget::initTextures()
         m_cubeTexture->setMagnificationFilter(QOpenGLTexture::LinearMipMapLinear);
         m_cubeTexture->generateMipMaps();
     }
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_texture->textureId());
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeTexture->textureId());
 }
 
 void GLEngineWidget::processCoordinates()
