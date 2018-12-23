@@ -23,6 +23,13 @@ class GLEngineWidget : public QOpenGLWidget, public QOpenGLFunctions
 public:
     explicit GLEngineWidget(QWidget* parent);
 protected:
+    class ConeData
+    {
+    public:
+        QVector3D pos;
+        float scaleXZ;
+        float scaleY;
+    };
     void loadShaders();
     void mousePressEvent(QMouseEvent *e);
     void mouseMoveEvent(QMouseEvent *e);

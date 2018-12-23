@@ -33,10 +33,11 @@ GLWidgetLab::GLWidgetLab(QWidget* parent):GLEngineWidget(parent)
     m_spotOuterAngle = cos(outerAngle * M_PI / 180.0f);
     m_spotInnerAngle = cos(innerAngle * M_PI / 180.0f);
 
-    m_spheresPerClaster = 25;
+    m_spheresPerClaster = 50;
     m_spheresArcPointCount = 15;
     m_spheresArcsCount = 30;
-    m_spheresClastersCenters = {{-20.0, 0.0, 0.0}, {20.0, 0.0, 0.0}};
+    const float clasterDistance = 15.0f;
+    m_spheresClastersCenters = {{-clasterDistance, 0.0, 0.0}, {clasterDistance, 0.0, 0.0}};
     m_spheresDispersionXZ = 20.0;
     m_spheresDispersionY = 10.0;
     m_spheresScale = 0.2;
@@ -169,14 +170,41 @@ void GLWidgetLab::calcVertices()
     //add cones
     ModelStorage coneModel;
     coneModel.loadObj(":/cone.obj");
+    QVector<float> compactConeData = {
+        m_spheresClastersCenters[0].x()*m_spheresScale + 1.0f, -2.05f, m_spheresClastersCenters[0].z()*m_spheresScale + 1.0f, 0.6f, 1.0f,
+        m_spheresClastersCenters[0].x()*m_spheresScale - 1.0, -2.05, m_spheresClastersCenters[0].z()*m_spheresScale + 1.0, 0.6, 1.0,
+        m_spheresClastersCenters[0].x()*m_spheresScale + 0.0, -2.05, m_spheresClastersCenters[0].z()*m_spheresScale + 0.0, 0.9, 0.5,
+        m_spheresClastersCenters[0].x()*m_spheresScale + 1.0, -2.05, m_spheresClastersCenters[0].z()*m_spheresScale - 1.0, 0.6, 1.0,
+        m_spheresClastersCenters[0].x()*m_spheresScale - 1.0, -2.05, m_spheresClastersCenters[0].z()*m_spheresScale - 1.0, 0.6, 1.0,
+
+        m_spheresClastersCenters[1].x()*m_spheresScale + 1.0, -2.05, m_spheresClastersCenters[1].z()*m_spheresScale + 1.0, 0.6, 1.0,
+        m_spheresClastersCenters[1].x()*m_spheresScale - 1.0, -2.05, m_spheresClastersCenters[1].z()*m_spheresScale + 1.0, 0.6, 1.0,
+        m_spheresClastersCenters[1].x()*m_spheresScale + 0.0, -2.05, m_spheresClastersCenters[1].z()*m_spheresScale + 0.0, 0.9, 0.5,
+        m_spheresClastersCenters[1].x()*m_spheresScale + 1.0, -2.05, m_spheresClastersCenters[1].z()*m_spheresScale - 1.0, 0.6, 1.0,
+        m_spheresClastersCenters[1].x()*m_spheresScale - 1.0, -2.05, m_spheresClastersCenters[1].z()*m_spheresScale - 1.0, 0.6, 1.0
+    };
+    Q_ASSERT(compactConeData.count() % 5 == 0);
+    QVector<ConeData> conesData;
+    for(int i = 0; i < compactConeData.count(); i+=5)
+    {
+        ConeData data;
+        data.pos = {compactConeData[i],
+                    compactConeData[i+1],
+                    compactConeData[i+2]};
+        data.scaleXZ = compactConeData[i+3];
+        data.scaleY = compactConeData[i+4];
+        conesData.append(data);
+    }
+
+    foreach(ConeData coneData, conesData)
     {
         QMatrix4x4 translateMatrix;
-        translateMatrix.translate(0, -2.05, 0);
+        translateMatrix.translate(coneData.pos.x(), coneData.pos.y(), coneData.pos.z());//-2.05
         for(int i = 0; i < coneModel.getVertices()->count(); i += 3)
         {
-            QVector4D realCoord(coneModel.getVertices()->at(i),
-                                coneModel.getVertices()->at(i + 1),
-                                coneModel.getVertices()->at(i + 2),
+            QVector4D realCoord(coneModel.getVertices()->at(i)     * coneData.scaleXZ,
+                                coneModel.getVertices()->at(i + 1) * coneData.scaleY,
+                                coneModel.getVertices()->at(i + 2) * coneData.scaleXZ,
                                 1.0);
             realCoord = translateMatrix * realCoord;
             vertices->append(realCoord.x());
